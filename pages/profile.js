@@ -305,7 +305,7 @@ export default function ProfilePage() {
       break
     }
 
-    const { data: publicData, error: publicUrlError } = supabase.storage
+    const { data: publicData } = supabase.storage
   .from('profile-photos')
   .getPublicUrl(filePath)
 
