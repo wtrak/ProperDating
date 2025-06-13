@@ -9,7 +9,7 @@ export default function CreatorsPage() {
 
   useEffect(() => {
     const loadCreators = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('*')
         .eq('role', 'creator')
