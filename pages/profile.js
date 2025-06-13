@@ -309,9 +309,10 @@ export default function ProfilePage() {
       break
     }
 
-    const { data: publicData } = supabase.storage
+    const { data: publicData } = await supabase.storage
   .from('profile-photos')
   .getPublicUrl(filePath)
+
 
 const publicUrl = publicData?.publicUrl
 
