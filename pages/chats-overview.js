@@ -4,7 +4,7 @@ import { supabase } from '../supabaseClient'
 
 export default function ChatsOverview() {
   const router = useRouter()
-  const [user, setUser] = useState(null)
+
   const [threads, setThreads] = useState([])
   const [loading, setLoading] = useState(true)
 
