@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @next/next/no-img-element */
-
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '../supabaseClient'
@@ -309,10 +305,9 @@ export default function ProfilePage() {
       break
     }
 
-    const { data: publicData } = await supabase.storage
+    const { data: publicData } = supabase.storage
   .from('profile-photos')
   .getPublicUrl(filePath)
-
 
 const publicUrl = publicData?.publicUrl
 

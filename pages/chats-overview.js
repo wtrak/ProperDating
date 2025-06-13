@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @next/next/no-img-element */
-
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '../supabaseClient'
@@ -9,6 +5,7 @@ import { supabase } from '../supabaseClient'
 export default function ChatsOverview() {
   const router = useRouter()
 
+  const [user, setUser] = useState(null) // 🧩 RESTORED LINE
   const [threads, setThreads] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -29,7 +26,6 @@ export default function ChatsOverview() {
         return
       }
 
-      // Determine the other user in the chat
       const enriched = await Promise.all(
         data.map(async (thread) => {
           const otherId = thread.creator_id === auth.user.id ? thread.supporter_id : thread.creator_id
