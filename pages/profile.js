@@ -311,12 +311,11 @@ export default function ProfilePage() {
 
 const publicUrl = publicData?.publicUrl
 
-console.log('Generated public URL:', publicUrl)
-
 if (!publicUrl) {
   console.error('No public URL returned.')
   continue
 }
+
 
 const { data: insertData, error: dbError } = await supabase
   .from('extra_profile_photos')
