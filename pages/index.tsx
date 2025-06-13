@@ -1,12 +1,12 @@
-import { useEffect } from 'react'
-import { useRouter } from 'next/router'
+export async function getServerSideProps() {
+  return {
+    redirect: {
+      destination: '/auth',
+      permanent: false,
+    },
+  }
+}
 
 export default function Home() {
-  const router = useRouter()
-
-  useEffect(() => {
-    router.replace('/auth') // use replace instead of push to avoid back button to index
-  }, [router])
-
   return null
 }
