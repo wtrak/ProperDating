@@ -6,26 +6,27 @@ export default function ChatThread() {
   const router = useRouter()
   const { threadId } = router.query
   const [user, setUser] = useState(null)
+  const [thread, setThread] = useState(null)
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
-  const [thread, setThread] = useState(null)
 
-  // Load current user
+  // ✅ Load user
   useEffect(() => {
-    const init = async () => {
+    const getUser = async () => {
       const { data: authData } = await supabase.auth.getUser()
       if (!authData?.user) return router.push('/auth')
       setUser(authData.user)
     }
-    init()
+    getUser()
   }, [])
 
-  // Load thread and messages
+  // ✅ Load thread and messages
   useEffect(() => {
     if (!threadId || !user) return
 
-    const fetchData = async () => {
+    const fetchThreadAndMessages = async () => {
+      // Load thread
       const { data: threadData, error: threadError } = await supabase
         .from('chat_access')
         .select('*')
@@ -33,12 +34,13 @@ export default function ChatThread() {
         .maybeSingle()
 
       if (threadError || !threadData) {
-        console.error('Error loading thread:', threadError?.message || 'Not found')
+        console.error('Error loading thread:', threadError?.message || 'Thread not found')
         return
       }
 
       setThread(threadData)
 
+      // Load messages
       const { data: msgs, error: msgError } = await supabase
         .from('messages')
         .select('*')
@@ -53,10 +55,10 @@ export default function ChatThread() {
       setLoading(false)
     }
 
-    fetchData()
+    fetchThreadAndMessages()
   }, [threadId, user])
 
-  // ✅ Mark thread as read
+  // ✅ Mark as read
   useEffect(() => {
     if (!threadId || !user) return
 
@@ -73,19 +75,22 @@ export default function ChatThread() {
     markAsRead()
   }, [threadId, user])
 
-  // Send message
+  // ✅ Handle sending message
   const handleSend = async () => {
     if (!input.trim() || !user || !thread) return
 
-    const isCreator = user.id === thread.creator_id
-    const receiverId = isCreator ? thread.supporter_id : thread.creator_id
+    const { creator_id, supporter_id } = thread
+    if (!creator_id || !supporter_id) return
+
+    const isCreator = user.id === creator_id
+    const receiverId = isCreator ? supporter_id : creator_id
 
     const message = {
       thread_id: threadId,
       sender_id: user.id,
       receiver_id: receiverId,
       content: input.trim(),
-      creator_id: thread.creator_id,
+      creator_id: creator_id,
     }
 
     const { error } = await supabase.from('messages').insert([message])
@@ -105,7 +110,10 @@ export default function ChatThread() {
     }
   }
 
-  if (loading) return <p className="p-4">Loading chat...</p>
+  // ✅ Prevent premature rendering
+  if (loading || !user || !thread) {
+    return <p className="p-4">Loading chat...</p>
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-4">
@@ -128,6 +136,7 @@ export default function ChatThread() {
           ))
         )}
       </div>
+
       <div className="flex space-x-2">
         <input
           type="text"
