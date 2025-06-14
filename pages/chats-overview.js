@@ -4,8 +4,7 @@ import { supabase } from '../supabaseClient'
 
 export default function ChatsOverview() {
   const router = useRouter()
-
-  const [user, setUser] = useState(null) // 🧩 RESTORED LINE
+  const [user, setUser] = useState(null)
   const [threads, setThreads] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -16,35 +15,51 @@ export default function ChatsOverview() {
 
       setUser(auth.user)
 
-      const { data, error } = await supabase
+      const { data: accessData, error } = await supabase
         .from('chat_access')
-        .select('id, creator_id, supporter_id, created_at')
+        .select('id, creator_id, supporter_id, photo_url, display_name')
         .or(`creator_id.eq.${auth.user.id},supporter_id.eq.${auth.user.id}`)
 
       if (error) {
-        console.error('Error loading threads:', error.message)
+        console.error('Error loading threads:', error)
         return
       }
 
-      const enriched = await Promise.all(
-        data.map(async (thread) => {
-          const otherId = thread.creator_id === auth.user.id ? thread.supporter_id : thread.creator_id
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('display_name, photo_url')
-            .eq('id', otherId)
-            .single()
+      const threadsWithUnread = await Promise.all(accessData.map(async (thread) => {
+        const otherUserId = thread.creator_id === auth.user.id
+          ? thread.supporter_id
+          : thread.creator_id
 
-          return {
-            ...thread,
-            display_name: profile?.display_name || 'Unknown',
-            photo_url: profile?.photo_url || null,
-            other_id: otherId
-          }
-        })
-      )
+        const { data: readData } = await supabase
+          .from('chat_reads')
+          .select('last_read_at')
+          .eq('thread_id', thread.id)
+          .eq('user_id', auth.user.id)
+          .maybeSingle()
 
-      setThreads(enriched)
+        const lastReadAt = readData?.last_read_at || '1970-01-01T00:00:00Z'
+
+        const { data: unreadMessages } = await supabase
+          .from('messages')
+          .select('id')
+          .eq('thread_id', thread.id)
+          .eq('sender_id', otherUserId)
+          .gt('created_at', lastReadAt)
+
+        return {
+          ...thread,
+          unreadCount: unreadMessages?.length || 0
+        }
+      }))
+
+      // Sort so unread threads come first
+threadsWithUnread.sort((a, b) => {
+  if (a.unreadCount > 0 && b.unreadCount === 0) return -1
+  if (a.unreadCount === 0 && b.unreadCount > 0) return 1
+  return 0 // keeps current order otherwise
+})
+
+setThreads(threadsWithUnread)
       setLoading(false)
     }
 
@@ -63,7 +78,7 @@ export default function ChatsOverview() {
           <div
             key={thread.id}
             onClick={() => router.push(`/chat/${thread.id}`)}
-            className="flex items-center gap-4 p-3 border rounded cursor-pointer hover:bg-gray-50"
+            className="relative flex items-center gap-4 p-3 border rounded cursor-pointer hover:bg-gray-50"
           >
             <img
               src={thread.photo_url || '/default-profile.png'}
@@ -74,6 +89,12 @@ export default function ChatsOverview() {
               <p className="font-semibold">{thread.display_name}</p>
               <p className="text-sm text-gray-500">Tap to open chat</p>
             </div>
+
+            {thread.unreadCount > 0 && (
+              <div className="absolute top-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                {thread.unreadCount}
+              </div>
+            )}
           </div>
         ))
       )}

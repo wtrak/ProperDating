@@ -38,6 +38,24 @@ export default function ChatThread() {
         return
       }
 
+      useEffect(() => {
+  const markAsRead = async () => {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!auth?.user) return
+
+    await supabase
+      .from('chat_reads')
+      .upsert({
+        thread_id: threadId,
+        user_id: auth.user.id,
+        last_read_at: new Date().toISOString(),
+      }, { onConflict: ['thread_id', 'user_id'] })
+  }
+
+  markAsRead()
+}, [threadId])
+
+
       setThread(threadData)
 
       // ✅ Get messages from messages table
