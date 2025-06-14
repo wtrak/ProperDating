@@ -17,7 +17,21 @@ export default function ChatsOverview() {
 
       const { data: accessData, error } = await supabase
         .from('chat_access')
-        .select('id, creator_id, supporter_id, photo_url, display_name')
+        .select(`
+          id,
+          creator_id,
+          supporter_id,
+          creator:creator_id (
+            id,
+            display_name,
+            photo_url
+          ),
+          supporter:supporter_id (
+            id,
+            display_name,
+            photo_url
+          )
+        `)
         .or(`creator_id.eq.${auth.user.id},supporter_id.eq.${auth.user.id}`)
 
       if (error) {
@@ -25,41 +39,46 @@ export default function ChatsOverview() {
         return
       }
 
-      const threadsWithUnread = await Promise.all(accessData.map(async (thread) => {
-        const otherUserId = thread.creator_id === auth.user.id
-          ? thread.supporter_id
-          : thread.creator_id
+      const threadsWithUnread = await Promise.all(
+        accessData.map(async (thread) => {
+          const isCreator = thread.creator_id === auth.user.id
+          const otherUser = isCreator ? thread.supporter : thread.creator
+          const otherUserId = otherUser.id
 
-        const { data: readData } = await supabase
-          .from('chat_reads')
-          .select('last_read_at')
-          .eq('thread_id', thread.id)
-          .eq('user_id', auth.user.id)
-          .maybeSingle()
+          // Get last read
+          const { data: readData } = await supabase
+            .from('chat_reads')
+            .select('last_read_at')
+            .eq('thread_id', thread.id)
+            .eq('user_id', auth.user.id)
+            .maybeSingle()
 
-        const lastReadAt = readData?.last_read_at || '1970-01-01T00:00:00Z'
+          const lastReadAt = readData?.last_read_at || '1970-01-01T00:00:00Z'
 
-        const { data: unreadMessages } = await supabase
-          .from('messages')
-          .select('id')
-          .eq('thread_id', thread.id)
-          .eq('sender_id', otherUserId)
-          .gt('created_at', lastReadAt)
+          const { data: unreadMessages } = await supabase
+            .from('messages')
+            .select('id')
+            .eq('thread_id', thread.id)
+            .eq('sender_id', otherUserId)
+            .gt('created_at', lastReadAt)
 
-        return {
-          ...thread,
-          unreadCount: unreadMessages?.length || 0
-        }
-      }))
+          return {
+            id: thread.id,
+            display_name: otherUser.display_name,
+            photo_url: otherUser.photo_url,
+            unreadCount: unreadMessages?.length || 0,
+          }
+        })
+      )
 
-      // Sort so unread threads come first
-threadsWithUnread.sort((a, b) => {
-  if (a.unreadCount > 0 && b.unreadCount === 0) return -1
-  if (a.unreadCount === 0 && b.unreadCount > 0) return 1
-  return 0 // keeps current order otherwise
-})
+      // Sort: unread threads first
+      threadsWithUnread.sort((a, b) => {
+        if (a.unreadCount > 0 && b.unreadCount === 0) return -1
+        if (a.unreadCount === 0 && b.unreadCount > 0) return 1
+        return 0
+      })
 
-setThreads(threadsWithUnread)
+      setThreads(threadsWithUnread)
       setLoading(false)
     }
 
