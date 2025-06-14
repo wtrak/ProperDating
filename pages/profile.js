@@ -353,12 +353,61 @@ if (dbError) {
 </p>
 
 
-      {profile.photo_url && (
-        <img src={profile.photo_url} alt="Preview" className="w-24 h-24 rounded-full object-cover" />
-      )}
+      <div className="flex flex-col items-center space-y-2 mb-4">
+  {profile.photo_url ? (
+    <>
+      <img
+        src={profile.photo_url}
+        alt="Profile"
+        className="w-24 h-24 rounded-full object-cover"
+      />
+      <input
+        type="file"
+        id="profile-photo"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files[0]
+          if (file) {
+            document.getElementById('profile-photo-input').files = e.target.files
+            handlePhotoUpload()
+          }
+        }}
+      />
+      <label
+        htmlFor="profile-photo"
+        className="bg-blue-600 text-white text-sm px-4 py-1 rounded cursor-pointer"
+      >
+        Change Photo
+      </label>
+    </>
+  ) : (
+    <>
+      <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center text-sm text-gray-500">
+        No Photo
+      </div>
+      <input
+        type="file"
+        id="profile-photo"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files[0]
+          if (file) {
+            document.getElementById('profile-photo-input').files = e.target.files
+            handlePhotoUpload()
+          }
+        }}
+      />
+      <label
+        htmlFor="profile-photo"
+        className="bg-blue-600 text-white text-sm px-4 py-1 rounded cursor-pointer"
+      >
+        Add Photo
+      </label>
+    </>
+  )}
+  <input type="file" id="profile-photo-input" className="hidden" />
+</div>
 
-      <input type="file" id="profile-photo-input" />
-      <button onClick={handlePhotoUpload} className="bg-blue-600 text-white px-4 py-1 rounded">Upload Photo</button>
 
       {/* Extra Photos */}
 <div className="mt-6">
@@ -465,8 +514,47 @@ if (dbError) {
 
       <input name="title" value={newPhotoSet.title} onChange={handleSetChange} className="w-full border p-2 rounded" placeholder="Photo Set Title" />
       <input name="price" value={newPhotoSet.price} onChange={handleSetChange} type="number" className="w-full border p-2 rounded" placeholder="Price" />
-      <label className="block">Preview Image: <input type="file" onChange={(e) => setPreview(e.target.files[0])} /></label>
-      <label className="block">Upload Photos: <input type="file" multiple onChange={(e) => setPhotos(Array.from(e.target.files))} /></label>
+      {/* Preview Image Upload */}
+<div className="mb-2">
+  <input
+    type="file"
+    id="preview-upload"
+    accept="image/*"
+    className="hidden"
+    onChange={(e) => setPreview(e.target.files[0])}
+  />
+  <label
+    htmlFor="preview-upload"
+    className="inline-block bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
+  >
+    {preview ? 'Change Preview Image' : 'Upload Preview Image'}
+  </label>
+  {preview && (
+    <span className="ml-2 text-sm text-gray-600">{preview.name}</span>
+  )}
+</div>
+
+{/* Unlockable Photos Upload */}
+<div className="mb-4">
+  <input
+    type="file"
+    id="set-upload"
+    multiple
+    accept="image/*"
+    className="hidden"
+    onChange={(e) => setPhotos(Array.from(e.target.files))}
+  />
+  <label
+    htmlFor="set-upload"
+    className="inline-block bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
+  >
+    {photos.length > 0 ? 'Change Unlockable Photos' : 'Upload Unlockable Photos'}
+  </label>
+  {photos.length > 0 && (
+    <span className="ml-2 text-sm text-gray-600">{photos.length} file{photos.length > 1 ? 's' : ''} selected</span>
+  )}
+</div>
+
       <button onClick={handleAddPhotoSet} className="bg-purple-600 text-white px-4 py-2 rounded mt-2">Add Photo Set</button>
     </div>
   )
