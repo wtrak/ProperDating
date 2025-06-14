@@ -21,12 +21,11 @@ export default function ChatThread() {
     getUser()
   }, [])
 
-  // ✅ Load thread and messages
+  // ✅ Load thread + messages
   useEffect(() => {
     if (!threadId || !user) return
 
     const fetchThreadAndMessages = async () => {
-      // Load thread
       const { data: threadData, error: threadError } = await supabase
         .from('chat_access')
         .select('*')
@@ -34,13 +33,12 @@ export default function ChatThread() {
         .maybeSingle()
 
       if (threadError || !threadData) {
-        console.error('Error loading thread:', threadError?.message || 'Thread not found')
+        console.error('Error loading thread:', threadError?.message || 'Not found')
         return
       }
 
       setThread(threadData)
 
-      // Load messages
       const { data: msgs, error: msgError } = await supabase
         .from('messages')
         .select('*')
@@ -58,24 +56,28 @@ export default function ChatThread() {
     fetchThreadAndMessages()
   }, [threadId, user])
 
-  // ✅ Mark as read
+  // ✅ Mark thread as read after messages are loaded
   useEffect(() => {
-    if (!threadId || !user) return
+    if (!threadId || !user || messages.length === 0) return
 
     const markAsRead = async () => {
-      await supabase
+      const { error } = await supabase
         .from('chat_reads')
         .upsert({
           thread_id: threadId,
           user_id: user.id,
           last_read_at: new Date().toISOString(),
-        }, { onConflict: ['thread_id', 'user_id'] })
+        }, { onConflict: 'thread_id,user_id' })
+
+      if (error) {
+        console.error('Error updating read timestamp:', error.message)
+      }
     }
 
     markAsRead()
-  }, [threadId, user])
+  }, [threadId, user, messages])
 
-  // ✅ Handle sending message
+  // ✅ Send message
   const handleSend = async () => {
     if (!input.trim() || !user || !thread) return
 
@@ -110,7 +112,6 @@ export default function ChatThread() {
     }
   }
 
-  // ✅ Prevent premature rendering
   if (loading || !user || !thread) {
     return <p className="p-4">Loading chat...</p>
   }
