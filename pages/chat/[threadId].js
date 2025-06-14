@@ -26,7 +26,6 @@ export default function ChatThread() {
     if (!threadId || !user) return
 
     const fetchData = async () => {
-      // ✅ Get thread from chat_access
       const { data: threadData, error: threadError } = await supabase
         .from('chat_access')
         .select('*')
@@ -38,27 +37,8 @@ export default function ChatThread() {
         return
       }
 
-      useEffect(() => {
-  const markAsRead = async () => {
-    const { data: auth } = await supabase.auth.getUser()
-    if (!auth?.user) return
-
-    await supabase
-      .from('chat_reads')
-      .upsert({
-        thread_id: threadId,
-        user_id: auth.user.id,
-        last_read_at: new Date().toISOString(),
-      }, { onConflict: ['thread_id', 'user_id'] })
-  }
-
-  markAsRead()
-}, [threadId])
-
-
       setThread(threadData)
 
-      // ✅ Get messages from messages table
       const { data: msgs, error: msgError } = await supabase
         .from('messages')
         .select('*')
@@ -74,6 +54,23 @@ export default function ChatThread() {
     }
 
     fetchData()
+  }, [threadId, user])
+
+  // ✅ Mark thread as read
+  useEffect(() => {
+    if (!threadId || !user) return
+
+    const markAsRead = async () => {
+      await supabase
+        .from('chat_reads')
+        .upsert({
+          thread_id: threadId,
+          user_id: user.id,
+          last_read_at: new Date().toISOString(),
+        }, { onConflict: ['thread_id', 'user_id'] })
+    }
+
+    markAsRead()
   }, [threadId, user])
 
   // Send message
