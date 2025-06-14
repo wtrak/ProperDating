@@ -361,44 +361,58 @@ if (dbError) {
       <button onClick={handlePhotoUpload} className="bg-blue-600 text-white px-4 py-1 rounded">Upload Photo</button>
 
       {/* Extra Photos */}
-      <div className="mt-6">
-        <h2 className="text-lg font-semibold mb-2">Extra Profile Photos</h2>
-        <div className="grid grid-cols-5 gap-2 mb-2">
-          {extraPhotos.map((photo) => (
-            <div key={photo.id} className="relative group">
-              <img src={photo.photo_url} alt="Extra" className="w-full h-20 object-cover rounded" />
+<div className="mt-6">
+  <h2 className="text-lg font-semibold mb-2">Extra Profile Photos</h2>
+  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+    {[0, 1, 2, 3, 4].map((index) => {
+      const photo = extraPhotos[index]
+      return (
+        <div key={index} className="flex flex-col items-center">
+          {photo ? (
+            <>
+              <img
+                src={photo.photo_url}
+                alt="Extra"
+                className="w-24 h-24 object-cover rounded mb-1"
+              />
               <button
                 onClick={() => handleDeleteExtraPhoto(photo.id)}
-                className="absolute top-0 right-0 bg-red-600 text-white text-xs px-1 rounded opacity-0 group-hover:opacity-100"
+                className="bg-red-500 text-white text-sm px-2 py-1 rounded"
               >
-                ✕
+                Delete
               </button>
-            </div>
-          ))}
+            </>
+          ) : (
+            <>
+              <div className="w-24 h-24 bg-gray-100 rounded flex items-center justify-center text-sm text-gray-500">
+                Empty
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                id={`extra-upload-${index}`}
+                className="hidden"
+                onChange={(e) => {
+                  const files = e.target.files
+                  if (files && files.length > 0) {
+                    handleExtraPhotoUpload([files[0]])
+                  }
+                }}
+              />
+              <label
+                htmlFor={`extra-upload-${index}`}
+                className="bg-blue-600 text-white text-sm px-2 py-1 rounded cursor-pointer mt-1"
+              >
+                Add Photo
+              </label>
+            </>
+          )}
         </div>
-        {extraPhotos.length < 5 && (
-  <div className="mt-2">
-    <input
-      type="file"
-      accept="image/*"
-      multiple
-      ref={extraFileInputRef}
-      onChange={(e) => handleExtraPhotoUpload(e.target.files)}
-      className="hidden"
-    />
-    <button
-      type="button"
-      onClick={() => extraFileInputRef.current?.click()}
-      className="bg-blue-600 text-white px-4 py-2 rounded"
-      disabled={uploadingExtra}
-    >
-      Upload Extra Photo{extraPhotos.length >= 4 ? '' : 's'}
-    </button>
+      )
+    })}
   </div>
-)}
+</div>
 
-
-      </div>
 
       <input name="display_name" value={profile.display_name} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Display Name" />
       <textarea name="bio" value={profile.bio} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Bio" />
