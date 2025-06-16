@@ -160,23 +160,61 @@ if (authUser?.user && authUser.user.id !== id) {
     alert('Gift sent successfully!')
   }
 
-  const handleUnlockMessaging = async () => {
+const handleUnlockMessaging = async () => {
   if (!user) return router.push('/auth')
 
-  const { error } = await supabase.from('chat_access').insert([
+  // Step 1: Unlock access
+  const { error: accessError } = await supabase.from('chat_access').insert([
     {
       supporter_id: user.id,
       creator_id: id
     }
   ])
 
-  if (!error) {
-    setUnlocked(true)
-    router.push('/chats-overview')
-  } else {
-    alert('Error unlocking messaging: ' + error.message)
+  if (accessError) {
+    alert('Error unlocking messaging: ' + accessError.message)
+    return
   }
+
+  // Step 2: Check if thread already exists
+  let { data: existingThread } = await supabase
+    .from('chat_threads')
+    .select('*')
+    .or(`creator_id.eq.${id},supporter_id.eq.${user.id}`)
+    .limit(1)
+    .maybeSingle()
+
+  let threadId = existingThread?.id
+
+  // Step 3: Create the thread if it doesn’t exist
+  if (!threadId) {
+    const { data: newThread, error: createError } = await supabase
+      .from('chat_threads')
+      .insert([{ creator_id: id, supporter_id: user.id }])
+      .select()
+      .single()
+
+    if (createError) {
+      alert('Failed to create chat thread: ' + createError.message)
+      return
+    }
+
+    threadId = newThread.id
+  }
+
+  // ✅ Step 3b: Patch chat_access with this thread_id
+  await supabase
+    .from('chat_access')
+    .update({ thread_id: threadId })
+    .eq('creator_id', id)
+    .eq('supporter_id', user.id)
+
+  setUnlocked(true)
+  router.push(`/chat/${threadId}`)
 }
+
+
+
 
 
 
@@ -251,35 +289,37 @@ if (!creator) return <p className="p-4">Loading...</p>
     <p className="text-green-600 font-semibold">Messaging Unlocked ✅</p>
     <button
       onClick={async () => {
-        if (!user || !creator) return
-        const { data: existing } = await supabase
-          .from('chat_threads')
-          .select('id')
-          .or(`creator_id.eq.${creator.id},supporter_id.eq.${user.id}`)
-          .or(`creator_id.eq.${user.id},supporter_id.eq.${creator.id}`)
-          .limit(1)
-          .maybeSingle()
+  if (!user || !creator) return
 
-        let threadId = existing?.id
+  const { data: existingThread, error: checkErr } = await supabase
+    .from('chat_threads')
+    .select('id')
+      .or(`and(creator_id.eq.${creator.id},supporter_id.eq.${user.id}),and(creator_id.eq.${user.id},supporter_id.eq.${creator.id})`)
+    .or(`creator_id.eq.${user.id},supporter_id.eq.${creator.id}`)
+    .limit(1)
+    .maybeSingle()
 
-        if (!threadId) {
-          const { data: created, error: createErr } = await supabase
-            .from('chat_threads')
-            .insert([{ creator_id: creator.id, supporter_id: user.id }])
-            .select()
-            .single()
+  let threadId = existingThread?.id
 
-          if (createErr) {
-            console.error('Failed to create thread:', createErr.message)
-            alert('Error creating message thread.')
-            return
-          }
+  if (!threadId) {
+    const { data: newThread, error: createErr } = await supabase
+      .from('chat_threads')
+      .insert([{ creator_id: creator.id, supporter_id: user.id }])
+      .select()
+      .single()
 
-          threadId = created.id
-        }
+    if (createErr) {
+      console.error('Failed to create thread:', createErr.message)
+      alert('Error creating message thread.')
+      return
+    }
 
-        router.push(`/chat/${threadId}`)
-      }}
+    threadId = newThread.id
+  }
+
+  router.push(`/chat/${threadId}`)
+}}
+
       className="bg-purple-700 text-white px-4 py-2 rounded"
     >
       Message
