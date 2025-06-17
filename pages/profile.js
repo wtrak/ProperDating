@@ -5,12 +5,22 @@ import { supabase } from '../supabaseClient'
 
 
 
+
 function sanitizeFilename(name) {
   return name.replace(/[^a-z0-9.\-_]/gi, '-')
 }
 
 export default function ProfilePage() {
   const router = useRouter()
+
+  const [age, setAge] = useState('');
+const [hairColor, setHairColor] = useState('');
+const [eyeColor, setEyeColor] = useState('');
+const [shoeSize, setShoeSize] = useState('');
+const [weight, setWeight] = useState('');
+const [height, setHeight] = useState('');
+const [ethnicity, setEthnicity] = useState('');
+
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState({
     display_name: '',
@@ -56,8 +66,17 @@ export default function ProfilePage() {
       }
 
       if (data) {
-        setProfile({ ...data })
-      }
+  setProfile({ ...data })
+
+  // 👇 Populate form dropdowns from Supabase
+  setAge(data.age || '')
+  setHairColor(data.hair_color || '')
+  setEyeColor(data.eye_color || '')
+  setShoeSize(data.shoe_size || '')
+  setWeight(data.weight_kg || '')
+  setHeight(data.height_m || '')
+  setEthnicity(data.ethnicity || '')
+}
 
       const { data: updatedGifts } = await supabase.from('gifts').select('*').eq('creator_id', user.id)
       setGifts(updatedGifts || [])
@@ -96,17 +115,26 @@ export default function ProfilePage() {
     const numericGoal = profile.monthly_goal === '' ? null : parseFloat(profile.monthly_goal)
 
     const { error } = await supabase.from('profiles').upsert([
-      {
-        id: user.id,
-        display_name: profile.display_name || '',
-        bio: profile.bio || '',
-        role: profile.role || 'supporter',
-        location: profile.location || '',
-        in_person: profile.in_person || false,
-        monthly_goal: numericGoal,
-        photo_url: profile.photo_url || ''
-      }
-    ])
+  {
+    id: user.id,
+    display_name: profile.display_name || '',
+    bio: profile.bio || '',
+    role: profile.role || 'supporter',
+    location: profile.location || '',
+    in_person: profile.in_person || false,
+    monthly_goal: numericGoal,
+    photo_url: profile.photo_url || '',
+    // 👇 New fields
+    age,
+    hair_color: hairColor,
+    eye_color: eyeColor,
+    shoe_size: shoeSize,
+    weight_kg: weight,
+    height_m: height,
+    ethnicity
+  }
+])
+
 
     setMessage(error ? `Error: ${error.message}` : 'Profile saved successfully!')
   }
@@ -469,8 +497,119 @@ if (dbError) {
         <option value="supporter">Supporter</option>
         <option value="creator">Creator</option>
       </select>
-      <input name="location" value={profile.location} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Location" />
+      <label className="block font-semibold mt-4">City</label>
+<select
+  name="location"
+  value={profile.location}
+  onChange={handleChange}
+  className="w-full border p-2 rounded"
+>
+  <option value="">Select City</option>
+  {[
+    'Warsaw',
+    'Kraków',
+    'Łódź',
+    'Wrocław',
+    'Poznań',
+    'Gdańsk',
+    'Szczecin',
+    'Bydgoszcz',
+    'Lublin',
+    'Katowice',
+    'Białystok',
+    'Gdynia',
+    'Częstochowa',
+    'Radom',
+    'Toruń',
+    'Sosnowiec',
+    'Kielce',
+    'Gliwice',
+    'Zabrze',
+    'Olsztyn',
+    'Rzeszów',
+    'Bielsko-Biała',
+    'Other'
+  ].map(city => (
+    <option key={city} value={city}>{city}</option>
+  ))}
+</select>
+
       <label className="block"><input type="checkbox" name="in_person" checked={profile.in_person} onChange={handleChange} /> Open to In-Person Support</label>
+      {/* --- New Creator Attributes --- */}
+
+<label className="block font-semibold mt-4">Age</label>
+<select value={age} onChange={e => setAge(e.target.value)} className="w-full border p-2 rounded">
+  <option value="">Select Age</option>
+  {Array.from({ length: 43 }, (_, i) => (
+    <option key={i} value={i + 18}>{i + 18}</option>
+  ))}
+  <option value="60+">60+</option>
+</select>
+
+<label className="block font-semibold mt-4">Hair Color</label>
+<select value={hairColor} onChange={e => setHairColor(e.target.value)} className="w-full border p-2 rounded">
+  <option value="">Select Hair Color</option>
+  <option value="Blonde">Blonde</option>
+  <option value="Brown">Brown</option>
+  <option value="Black">Black</option>
+  <option value="Red">Red</option>
+  <option value="Auburn">Auburn</option>
+  <option value="Gray">Gray</option>
+  <option value="Dyed">Dyed</option>
+  <option value="Bald/Shaved">Bald/Shaved</option>
+</select>
+
+<label className="block font-semibold mt-4">Eye Color</label>
+<select value={eyeColor} onChange={e => setEyeColor(e.target.value)} className="w-full border p-2 rounded">
+  <option value="">Select Eye Color</option>
+  <option value="Blue">Blue</option>
+  <option value="Brown">Brown</option>
+  <option value="Green">Green</option>
+  <option value="Hazel">Hazel</option>
+  <option value="Gray">Gray</option>
+  <option value="Other">Other</option>
+</select>
+
+<label className="block font-semibold mt-4">Shoe Size (EU)</label>
+<select value={shoeSize} onChange={e => setShoeSize(e.target.value)} className="w-full border p-2 rounded">
+  <option value="">Select Shoe Size</option>
+  {Array.from({ length: 33 }, (_, i) => {
+    const size = (32 + i * 0.5).toFixed(1);
+    return <option key={size} value={size}>{size}</option>;
+  })}
+</select>
+
+<label className="block font-semibold mt-4">Weight (kg)</label>
+<select value={weight} onChange={e => setWeight(e.target.value)} className="w-full border p-2 rounded">
+  <option value="">Select Weight</option>
+  {Array.from({ length: 13 }, (_, i) => {
+    const w = 40 + i * 5;
+    return <option key={w} value={w}>{w} kg</option>;
+  })}
+  <option value="100+">100+ kg</option>
+</select>
+
+<label className="block font-semibold mt-4">Height (m)</label>
+<select value={height} onChange={e => setHeight(e.target.value)} className="w-full border p-2 rounded">
+  <option value="">Select Height</option>
+  {Array.from({ length: 17 }, (_, i) => {
+    const h = (1.30 + i * 0.05).toFixed(2);
+    return <option key={h} value={h}>{h} m</option>;
+  })}
+</select>
+
+<label className="block font-semibold mt-4">Ethnicity</label>
+<select value={ethnicity} onChange={e => setEthnicity(e.target.value)} className="w-full border p-2 rounded">
+  <option value="">Select Ethnicity</option>
+  <option value="Caucasian">Caucasian</option>
+  <option value="Black">Black</option>
+  <option value="Hispanic/Latina">Hispanic/Latina</option>
+  <option value="Asian">Asian</option>
+  <option value="Middle Eastern">Middle Eastern</option>
+  <option value="Mixed">Mixed</option>
+  <option value="Other">Other</option>
+</select>
+
       <input type="number" name="monthly_goal" value={profile.monthly_goal} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Monthly Goal" />
 
       <button onClick={handleSave} className="bg-green-600 text-white px-4 py-2 rounded">Save Profile</button>

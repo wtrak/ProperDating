@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Top Up Tokens – Test</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      color: #333;
+    }
+    .btn {
+      display: block;
+      background-color: #0085ff;
+      color: white;
+      text-decoration: none;
+      padding: 12px 18px;
+      margin: 10px 0;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .info {
+      font-size: 0.9em;
+      color: #666;
+      margin-bottom: 20px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 10px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Top Up Tokens (Test)</h1>
+  <p class="info">Choose a token amount to top up. You'll be redirected to a secure payment page where you can pay with BLIK or card. Crypto will be sent to our wallet and your tokens will be credited shortly after.</p>
+
+  <!-- Replace YOUR_WALLET_ADDRESS below with your real one -->
+  <a class="btn" href="https://guardarian.com/buy?crypto_type=USDT&fiat_type=PLN&wallet_address=TGW56spanMC3ywvMh5JPP3Dkd3BzjuemHy&amount=20" target="_blank">
+    🔹 Buy 100 Tokens – 20 PLN
+  </a>
+  <a class="btn" href="https://guardarian.com/buy?crypto_type=USDT&fiat_type=PLN&wallet_address=TGW56spanMC3ywvMh5JPP3Dkd3BzjuemHy&amount=50" target="_blank">
+    🔸 Buy 300 Tokens – 50 PLN
+  </a>
+  <a class="btn" href="https://guardarian.com/buy?crypto_type=USDT&fiat_type=PLN&wallet_address=TGW56spanMC3ywvMh5JPP3Dkd3BzjuemHy&amount=100" target="_blank">
+    💎 Buy 700 Tokens – 100 PLN
+  </a>
+
+  <h2>Submit Transaction ID (optional)</h2>
+  <p class="info">After payment, paste your transaction ID or wallet address to help us verify it faster.</p>
+  <textarea rows="3" placeholder="Paste your transaction ID here..."></textarea>
+  <button onclick="alert('Thank you! We’ll verify your payment shortly.')">Submit</button>
+
+</body>
+</html>

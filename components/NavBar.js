@@ -40,6 +40,7 @@ export default function NavBar() {
         </Link>
       )}
       <Link href="/chats-overview" style={{ marginRight: '1rem' }}>Messages</Link>
+      <Link href="/topup" style={{ marginRight: '1rem', fontWeight: 'bold', color: '#22c55e' }}>💰 Buy Tokens</Link>
       <span onClick={handleLogout} style={{ color: 'red', cursor: 'pointer' }}>
         Logout
       </span>
