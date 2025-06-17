@@ -19,6 +19,8 @@ const [eyeColor, setEyeColor] = useState('');
 const [shoeSize, setShoeSize] = useState('');
 const [weight, setWeight] = useState('');
 const [height, setHeight] = useState('');
+const [braSize, setBraSize] = useState('');
+const [languages, setLanguages] = useState([]);
 const [ethnicity, setEthnicity] = useState('');
 
   const [user, setUser] = useState(null)
@@ -39,6 +41,10 @@ const [ethnicity, setEthnicity] = useState('');
   const [newPhotoSet, setNewPhotoSet] = useState({ title: '', price: '' })
   const [photos, setPhotos] = useState([])
   const [preview, setPreview] = useState(null)
+
+  const [uploadingProfile, setUploadingProfile] = useState(false)
+const [uploadingPreview, setUploadingPreview] = useState(false)
+const [uploadingSetPhotos, setUploadingSetPhotos] = useState(false)
 
   const [extraPhotos, setExtraPhotos] = useState([])
   const [uploadingExtra, setUploadingExtra] = useState(false)
@@ -75,6 +81,8 @@ const [ethnicity, setEthnicity] = useState('');
   setShoeSize(data.shoe_size || '')
   setWeight(data.weight_kg || '')
   setHeight(data.height_m || '')
+  setBraSize(data.bra_size || '');
+  setLanguages(data.languages_spoken || []);
   setEthnicity(data.ethnicity || '')
 }
 
@@ -99,16 +107,19 @@ const [ethnicity, setEthnicity] = useState('');
   }
 
   const handlePhotoUpload = async () => {
-    const file = document.getElementById('profile-photo-input').files[0]
-    if (!file || !user) return
-    const safeName = sanitizeFilename(file.name)
-    const filePath = `public/${user.id}-${Date.now()}-${safeName}`
-    const { error: uploadError } = await supabase.storage.from('profile-photos').upload(filePath, file)
-    if (!uploadError) {
-      const url = supabase.storage.from('profile-photos').getPublicUrl(filePath).data.publicUrl
-      setProfile({ ...profile, photo_url: url })
-    }
+  const file = document.getElementById('profile-photo-input').files[0]
+  if (!file || !user) return
+  setUploadingProfile(true)
+  const safeName = sanitizeFilename(file.name)
+  const filePath = `public/${user.id}-${Date.now()}-${safeName}`
+  const { error: uploadError } = await supabase.storage.from('profile-photos').upload(filePath, file)
+  if (!uploadError) {
+    const url = supabase.storage.from('profile-photos').getPublicUrl(filePath).data.publicUrl
+    setProfile({ ...profile, photo_url: url })
   }
+  setUploadingProfile(false)
+}
+
 
   const handleSave = async () => {
     setMessage('')
@@ -131,6 +142,8 @@ const [ethnicity, setEthnicity] = useState('');
     shoe_size: shoeSize,
     weight_kg: weight,
     height_m: height,
+    bra_size: braSize,
+    languages_spoken: languages,
     ethnicity
   }
 ])
@@ -251,9 +264,10 @@ const [ethnicity, setEthnicity] = useState('');
   const cleanName = sanitizeFilename(preview.name)
   const previewPath = `${user.id}/previews/${user.id}-preview-${Date.now()}-${cleanName}`
 
-  const { error: previewErr } = await supabase.storage
-    .from('photo-sets')
-    .upload(previewPath, preview)
+  setUploadingPreview(true)
+const { error: previewErr } = await supabase.storage.from('photo-sets').upload(previewPath, preview)
+setUploadingPreview(false)
+
 
   if (previewErr) return alert('Preview upload failed.')
 
@@ -279,28 +293,33 @@ const [ethnicity, setEthnicity] = useState('');
   // Save the preview image to the 'photos' table (optional)
   await supabase.from('photos').insert({ set_id: newSet.id, url: previewUrl })
 
-  // Upload and store each additional photo
-  for (const photo of photos) {
-    const photoName = sanitizeFilename(photo.name)
-    const photoPath = `${user.id}/sets/${newSet.id}-${Date.now()}-${photoName}`
+  setUploadingSetPhotos(true)
 
-    const { error: upErr } = await supabase.storage
-      .from('photo-sets')
-      .upload(photoPath, photo)
+// Upload and store each additional photo
+for (const photo of photos) {
+  const photoName = sanitizeFilename(photo.name)
+  const photoPath = `${user.id}/sets/${newSet.id}-${Date.now()}-${photoName}`
 
-    if (upErr) {
-      console.error('Photo upload failed:', upErr.message)
-      continue
-    }
+  const { error: upErr } = await supabase.storage
+    .from('photo-sets')
+    .upload(photoPath, photo)
 
-    const { data: photoUrlData } = supabase.storage
-      .from('photo-sets')
-      .getPublicUrl(photoPath)
-
-    const photoUrl = photoUrlData?.publicUrl
-
-    await supabase.from('photos').insert({ set_id: newSet.id, url: photoUrl })
+  if (upErr) {
+    console.error('Photo upload failed:', upErr.message)
+    continue
   }
+
+  const { data: photoUrlData } = supabase.storage
+    .from('photo-sets')
+    .getPublicUrl(photoPath)
+
+  const photoUrl = photoUrlData?.publicUrl
+
+  await supabase.from('photos').insert({ set_id: newSet.id, url: photoUrl })
+}
+
+setUploadingSetPhotos(false)
+
 
   const { data: updatedSets } = await supabase
     .from('photo_sets')
@@ -313,54 +332,54 @@ const [ethnicity, setEthnicity] = useState('');
   setPhotos([])
 }
 
+const handleExtraPhotoUpload = async (e, slot) => {
+  const file = e.target.files[0]
+  if (!file || !user) return
 
-  const handleExtraPhotoUpload = async (files) => {
-  if (!files || uploadingExtra || !user) return
-  const uploadable = Math.min(5 - extraPhotos.length, files.length)
   setUploadingExtra(true)
 
-  for (let i = 0; i < uploadable; i++) {
-    const file = files[i]
-    const fileName = `extra_${user.id}_${Date.now()}_${sanitizeFilename(file.name)}`
-    const filePath = `extra_photos/${fileName}`
+  const filePath = `extra/${user.id}-${slot}-${Date.now()}-${sanitizeFilename(file.name)}`
+  const { error: uploadError } = await supabase.storage.from('profile-photos').upload(filePath, file)
 
-    console.log('Uploading to:', filePath)
-
-    const { error: uploadError } = await supabase.storage.from('profile-photos').upload(filePath, file)
-    if (uploadError) {
-      console.error('Upload failed:', uploadError)
-      alert('Upload failed.')
-      break
-    }
-
-    const { data: publicData } = supabase.storage
-  .from('profile-photos')
-  .getPublicUrl(filePath)
-
-const publicUrl = publicData?.publicUrl
-
-if (!publicUrl) {
-  console.error('No public URL returned.')
-  continue
-}
-
-
-const { data: insertData, error: dbError } = await supabase
-  .from('extra_profile_photos')
-  .insert([{ user_id: user.id, photo_url: publicUrl }])
-
-if (dbError) {
-  console.error('Insert failed:', dbError)
-} else {
-  console.log('Insert successful:', insertData)
-}
-
+  if (uploadError) {
+    console.error('Upload failed:', uploadError)
+    alert('Upload failed.')
+    setUploadingExtra(false)
+    return
   }
 
-  const { data: updated } = await supabase.from('extra_profile_photos').select('*').eq('user_id', user.id).limit(5)
+  const { data: publicData } = supabase.storage
+    .from('profile-photos')
+    .getPublicUrl(filePath)
+
+  const publicUrl = publicData?.publicUrl
+
+  if (!publicUrl) {
+    console.error('No public URL returned.')
+    setUploadingExtra(false)
+    return
+  }
+
+  const { data: insertData, error: dbError } = await supabase
+    .from('extra_profile_photos')
+    .insert([{ user_id: user.id, photo_url: publicUrl }])
+
+  if (dbError) {
+    console.error('Insert failed:', dbError)
+  } else {
+    console.log('Insert successful:', insertData)
+  }
+
+  const { data: updated } = await supabase
+    .from('extra_profile_photos')
+    .select('*')
+    .eq('user_id', user.id)
+    .limit(5)
+
   setExtraPhotos(updated || [])
   setUploadingExtra(false)
 }
+
 
 
 
@@ -434,6 +453,8 @@ if (dbError) {
     </>
   )}
   <input type="file" id="profile-photo-input" className="hidden" />
+  {uploadingProfile && <p className="text-sm text-yellow-600">Uploading profile photo...</p>}
+
 </div>
 
 
@@ -441,6 +462,8 @@ if (dbError) {
 <div className="mt-6">
   <h2 className="text-lg font-semibold mb-2">Extra Profile Photos</h2>
   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+    {uploadingExtra && <p className="text-sm text-yellow-600 mt-2">Uploading extra photo...</p>}
+
     {[0, 1, 2, 3, 4].map((index) => {
       const photo = extraPhotos[index]
       return (
@@ -465,17 +488,13 @@ if (dbError) {
                 Empty
               </div>
               <input
-                type="file"
-                accept="image/*"
-                id={`extra-upload-${index}`}
-                className="hidden"
-                onChange={(e) => {
-                  const files = e.target.files
-                  if (files && files.length > 0) {
-                    handleExtraPhotoUpload([files[0]])
-                  }
-                }}
-              />
+  type="file"
+  accept="image/*"
+  id={`extra-upload-${index}`}
+  className="hidden"
+  onChange={(e) => handleExtraPhotoUpload(e, index)}
+/>
+
               <label
                 htmlFor={`extra-upload-${index}`}
                 className="bg-blue-600 text-white text-sm px-2 py-1 rounded cursor-pointer mt-1"
@@ -598,6 +617,30 @@ if (dbError) {
   })}
 </select>
 
+<label className="block font-semibold mt-4">Bra Size</label>
+<select value={braSize} onChange={e => setBraSize(e.target.value)} className="w-full border p-2 rounded">
+  <option value="">Select Bra Size</option>
+  {['AA', 'A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G', 'Other'].map(size => (
+    <option key={size} value={size}>{size}</option>
+  ))}
+</select>
+
+<label className="block font-semibold mt-4">Languages Spoken</label>
+<select
+  multiple
+  value={languages}
+  onChange={(e) => {
+    const selected = Array.from(e.target.selectedOptions, opt => opt.value)
+    setLanguages(selected)
+  }}
+  className="w-full border p-2 rounded h-40"
+>
+  {['English', 'Polish', 'Spanish', 'German', 'French', 'Ukrainian', 'Russian', 'Italian', 'Other'].map(lang => (
+    <option key={lang} value={lang}>{lang}</option>
+  ))}
+</select>
+
+
 <label className="block font-semibold mt-4">Ethnicity</label>
 <select value={ethnicity} onChange={e => setEthnicity(e.target.value)} className="w-full border p-2 rounded">
   <option value="">Select Ethnicity</option>
@@ -610,6 +653,7 @@ if (dbError) {
   <option value="Other">Other</option>
 </select>
 
+<label className="block font-semibold mt-4">Monthly Goal</label>
       <input type="number" name="monthly_goal" value={profile.monthly_goal} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Monthly Goal" />
 
       <button onClick={handleSave} className="bg-green-600 text-white px-4 py-2 rounded">Save Profile</button>
@@ -662,6 +706,8 @@ if (dbError) {
     className="hidden"
     onChange={(e) => setPreview(e.target.files[0])}
   />
+  {uploadingPreview && <p className="text-sm text-yellow-600 mt-1">Uploading preview image...</p>}
+
   <label
     htmlFor="preview-upload"
     className="inline-block bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
@@ -692,6 +738,8 @@ if (dbError) {
   {photos.length > 0 && (
     <span className="ml-2 text-sm text-gray-600">{photos.length} file{photos.length > 1 ? 's' : ''} selected</span>
   )}
+  {uploadingSetPhotos && <p className="text-sm text-yellow-600 mt-1">Uploading photo set content...</p>}
+
 </div>
 
       <button onClick={handleAddPhotoSet} className="bg-purple-600 text-white px-4 py-2 rounded mt-2">Add Photo Set</button>

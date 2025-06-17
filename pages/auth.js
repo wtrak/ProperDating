@@ -8,6 +8,7 @@ export default function AuthPage() {
   const [password, setPassword] = useState('')
   const [isLogin, setIsLogin] = useState(true)
   const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -20,7 +21,6 @@ export default function AuthPage() {
       authResult = await supabase.auth.signUp({ email, password })
       console.log('Signup result:', authResult)
 
-      // Try to retrieve the session after sign-up
       let user = null
       for (let i = 0; i < 10; i++) {
         const { data: sessionData } = await supabase.auth.getSession()
@@ -62,6 +62,7 @@ export default function AuthPage() {
     <div className="min-h-screen flex items-center justify-center">
       <form onSubmit={handleSubmit} className="space-y-4 p-8 bg-white shadow rounded">
         <h2 className="text-xl font-bold">{isLogin ? 'Login' : 'Sign Up'}</h2>
+
         <input
           className="border p-2 w-full"
           type="email"
@@ -69,17 +70,30 @@ export default function AuthPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <input
-          className="border p-2 w-full"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+
+        <div className="relative">
+          <input
+            className="border p-2 w-full pr-16"
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-blue-600"
+          >
+            {showPassword ? 'Hide' : 'Show'}
+          </button>
+        </div>
+
         {error && <p className="text-red-500">{error}</p>}
+
         <button className="bg-blue-500 text-white p-2 w-full rounded" type="submit">
           {isLogin ? 'Login' : 'Sign Up'}
         </button>
+
         <p className="text-sm">
           {isLogin ? 'Need an account?' : 'Already have one?'}{' '}
           <button type="button" onClick={() => setIsLogin(!isLogin)} className="underline text-blue-600">

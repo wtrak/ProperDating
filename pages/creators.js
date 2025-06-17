@@ -16,6 +16,8 @@ export default function CreatorsPage() {
     height: '',
     ethnicity: '',
     location: '',
+    braSize: '',
+    languages: [],
     inPersonOnly: false,
   })
 
@@ -32,6 +34,8 @@ export default function CreatorsPage() {
     if (filters.height) query = query.eq('height_m', Number(filters.height))
     if (filters.ethnicity) query = query.eq('ethnicity', filters.ethnicity)
     if (filters.location) query = query.eq('location', filters.location)
+    if (filters.braSize) query = query.eq('bra_size', filters.braSize)
+    if (filters.languages.length > 0) query = query.overlaps('languages_spoken', filters.languages)
     if (filters.inPersonOnly) query = query.eq('in_person', true)
 
     const { data } = await query
@@ -128,6 +132,37 @@ export default function CreatorsPage() {
           {['Warsaw', 'Kraków', 'Łódź', 'Wrocław', 'Poznań', 'Gdańsk', 'Szczecin', 'Lublin', 'Katowice', 'Other'].map(city => (
             <option key={city} value={city}>{city}</option>
           ))}
+        </select>
+
+        <select
+          value={filters.braSize}
+          onChange={e => setFilters({ ...filters, braSize: e.target.value })}
+          className="border p-2 rounded"
+        >
+          <option value="">Bra Size</option>
+          {['AA', 'A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G', 'Other'].map(size => (
+            <option key={size} value={size}>{size}</option>
+          ))}
+        </select>
+
+        <select
+          multiple
+          value={filters.languages}
+          onChange={(e) => {
+            const selected = Array.from(e.target.selectedOptions, opt => opt.value)
+            setFilters({ ...filters, languages: selected })
+          }}
+          className="border p-2 rounded h-40"
+        >
+          <option value="English">English</option>
+          <option value="Polish">Polish</option>
+          <option value="Spanish">Spanish</option>
+          <option value="German">German</option>
+          <option value="French">French</option>
+          <option value="Ukrainian">Ukrainian</option>
+          <option value="Russian">Russian</option>
+          <option value="Italian">Italian</option>
+          <option value="Other">Other</option>
         </select>
 
         <label className="flex items-center space-x-2">

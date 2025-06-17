@@ -10,6 +10,8 @@ export default function ChatThread() {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
+  const [otherUser, setOtherUser] = useState(null)
+
 
   useEffect(() => {
     const getUser = async () => {
@@ -36,6 +38,22 @@ export default function ChatThread() {
       }
 
       setThread(threadData)
+
+const otherUserId =
+  user.id === threadData.creator_id ? threadData.supporter_id : threadData.creator_id
+
+const { data: otherProfile, error: profileError } = await supabase
+  .from('profiles')
+  .select('id, display_name, photo_url')
+  .eq('id', otherUserId)
+  .single()
+
+if (profileError) {
+  console.error('Error loading other user profile:', profileError.message)
+} else {
+  setOtherUser(otherProfile)
+}
+
 
       const { data: msgs } = await supabase
         .from('messages')
@@ -99,6 +117,20 @@ export default function ChatThread() {
   return (
     <div className="max-w-2xl mx-auto p-4">
       <h1 className="text-xl font-bold mb-4">Chat</h1>
+      {otherUser && (
+  <div
+    className="flex items-center space-x-3 mb-4 cursor-pointer hover:bg-gray-100 p-2 rounded"
+    onClick={() => router.push(`/creator/${otherUser.id}`)}
+  >
+    <img
+      src={otherUser.photo_url || '/default-avatar.png'}
+      alt={otherUser.display_name}
+      className="w-10 h-10 rounded-full object-cover"
+    />
+    <span className="font-medium">{otherUser.display_name}</span>
+  </div>
+)}
+
       <div className="space-y-3 mb-4 border p-4 rounded h-[60vh] overflow-y-scroll bg-gray-50">
         {messages.length === 0 ? (
           <p className="text-gray-500 text-center">No messages yet.</p>
