@@ -8,6 +8,7 @@ export default function CreatorDashboard() {
   const [applications, setApplications] = useState([])
   const [recentViewers, setRecentViewers] = useState([])
   const [tokenBalance, setTokenBalance] = useState(0)
+  const [userRole, setUserRole] = useState(null)
   const [supporters, setSupporters] = useState([])
 
 
@@ -16,22 +17,60 @@ export default function CreatorDashboard() {
       const { data: authUser } = await supabase.auth.getUser()
       if (!authUser?.user) return router.push('/auth')
       setUser(authUser.user)
-      const userId = authUser.user.id
+const userId = authUser.user.id
+
+// ✅ Fetch user role and tokens
+const { data: profileData, error: profileError } = await supabase
+  .from('profiles')
+  .select('role, tokens')
+  .eq('id', userId)
+  .single()
+
+if (profileError) {
+  console.error('Error fetching profile role:', profileError.message)
+  return
+}
+
+setUserRole(profileData?.role || 'supporter')
+setTokenBalance(profileData?.tokens || 0)
+
       console.log('Logged-in user ID:', userId)
 
-      // Load date applications
-      const { data: appData, error: appError } = await supabase
-        .from('date_applications')
-        .select('*')
-        .eq('creator_id', userId)
-        .order('submitted_at', { ascending: false })
+      // Load applications based on role
+let applicationData = []
+if (userRole === 'creator') {
+  const { data, error } = await supabase
+    .from('date_applications')
+    .select(`
+      *,
+      profiles:supporter_id(display_name, photo_url)
+    `)
+    .eq('creator_id', userId)
+    .order('submitted_at', { ascending: false })
 
-      if (appError) {
-        console.error('Error loading applications:', appError.message)
-      } else {
-        console.log('Applications loaded:', appData)
-        setApplications(appData || [])
-      }
+  if (error) {
+    console.error('Error loading creator applications:', error.message)
+  } else {
+    applicationData = data || []
+  }
+} else {
+  const { data, error } = await supabase
+    .from('date_applications')
+    .select(`
+      *,
+      profiles:creator_id(display_name, photo_url)
+    `)
+    .eq('supporter_id', userId)
+    .order('submitted_at', { ascending: false })
+
+  if (error) {
+    console.error('Error loading supporter applications:', error.message)
+  } else {
+    applicationData = data || []
+  }
+}
+setApplications(applicationData)
+
 
       // Load recent viewers
       const { data: viewerData, error: viewerError } = await supabase
@@ -163,6 +202,9 @@ setSupporters(recentSupporters)
     loadData()
   }, [])
 
+if (!userRole) return <p className="p-4">Loading dashboard...</p>
+
+
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-8">
       <h1 className="text-2xl font-bold text-center">Creator Dashboard</h1>
@@ -180,7 +222,12 @@ setSupporters(recentSupporters)
           <ul className="space-y-4">
   {applications.map((app) => (
     <li key={app.id} className="border p-4 rounded relative">
-      <p className="text-sm text-gray-500 mb-1">From: {app.supporter_id}</p>
+      <p className="text-sm text-gray-500 mb-1">
+  {userRole === 'creator'
+    ? `From: ${app.profiles?.display_name || 'Anonymous'}`
+    : `To: ${app.profiles?.display_name || 'Unknown Creator'}`}
+</p>
+
 
       <div className="flex justify-between items-center mb-2">
         <span className="text-sm font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-700">
@@ -202,30 +249,35 @@ setSupporters(recentSupporters)
         </p>
       )}
 
-      {app.status === 'pending' && (
-        <div className="mt-4 space-y-2">
-          <button
-            className="bg-green-600 text-white px-3 py-1 rounded"
-            onClick={async () => {
-              await supabase
-                .from('date_applications')
-                .update({ status: 'accepted' })
-                .eq('id', app.id)
-              setApplications((prev) =>
-                prev.map((a) => (a.id === app.id ? { ...a, status: 'accepted' } : a))
-              )
-            }}
-          >
-            ✅ Accept
-          </button>
+      {userRole === 'creator' && app.status === 'pending' && (
+  <div className="mt-4 space-y-2">
+    <button
+      className="bg-green-600 text-white px-3 py-1 rounded"
+      onClick={async () => {
+        await supabase
+          .from('date_applications')
+          .update({ status: 'accepted' })
+          .eq('id', app.id)
+        setApplications((prev) =>
+          prev.map((a) => (a.id === app.id ? { ...a, status: 'accepted' } : a))
+        )
+      }}
+    >
+      ✅ Accept
+    </button>
 
-          <DeclineWithNote app={app} onUpdate={(updatedApp) => {
-            setApplications((prev) =>
-              prev.map((a) => (a.id === app.id ? updatedApp : a))
-            )
-          }} />
-        </div>
-      )}
+    <DeclineWithNote
+      app={app}
+      onUpdate={(updatedApp) => {
+        setApplications((prev) =>
+          prev.map((a) => (a.id === app.id ? updatedApp : a))
+        )
+      }}
+    />
+  </div>
+)}
+
+
     </li>
   ))}
 </ul>
@@ -295,18 +347,27 @@ setSupporters(recentSupporters)
 </div>  // ✅ closes the main wrapper <div className="max-w-2xl mx-auto ...">
 )       // ✅ closes the return statement
 }       // ✅ closes the function
+
+
 function DeclineWithNote({ app, onUpdate }) {
   const [open, setOpen] = useState(false)
   const [note, setNote] = useState('')
+  const [error, setError] = useState(null)
 
   const handleDecline = async () => {
     const { error } = await supabase
       .from('date_applications')
-      .update({ status: 'declined', creator_response: note })
+      .update({
+        status: 'declined',
+        creator_response: note || 'No reason provided.'
+      })
       .eq('id', app.id)
 
-    if (!error) {
+    if (error) {
+      setError(error.message)
+    } else {
       onUpdate({ ...app, status: 'declined', creator_response: note })
+      setOpen(false)
     }
   }
 
@@ -335,6 +396,7 @@ function DeclineWithNote({ app, onUpdate }) {
       >
         Submit Decline
       </button>
+      {error && <p className="text-sm text-red-600">{error}</p>}
       <button
         className="text-sm text-gray-500 underline"
         onClick={() => setOpen(false)}
@@ -344,4 +406,5 @@ function DeclineWithNote({ app, onUpdate }) {
     </div>
   )
 }
+
 
