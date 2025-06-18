@@ -22,6 +22,8 @@ const [height, setHeight] = useState('');
 const [braSize, setBraSize] = useState('');
 const [languages, setLanguages] = useState([]);
 const [ethnicity, setEthnicity] = useState('');
+const [monthlyGoal, setMonthlyGoal] = useState('');
+
 
   const [user, setUser] = useState(null)
   const [role, setRole] = useState(null)
@@ -135,7 +137,8 @@ const [uploadingSetPhotos, setUploadingSetPhotos] = useState(false)
 
   const handleSave = async () => {
     setMessage('')
-    const numericGoal = profile.monthly_goal === '' ? null : parseFloat(profile.monthly_goal)
+   const numericGoal = monthlyGoal === '' ? null : parseFloat(monthlyGoal)
+
 
     const { error } = await supabase.from('profiles').upsert([
   {
