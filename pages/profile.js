@@ -137,33 +137,42 @@ const [uploadingSetPhotos, setUploadingSetPhotos] = useState(false)
 
 
   const handleSave = async () => {
-    setMessage('')
-   const numericGoal = /^\d+(\.\d+)?$/.test(monthlyGoal) ? parseFloat(monthlyGoal) : null
+  setMessage('')
 
+  const numericGoal = /^\d+(\.\d+)?$/.test(monthlyGoal) ? parseFloat(monthlyGoal) : null
 
+  const { error } = await supabase.from('profiles').upsert([
+    {
+      id: user.id,
+      display_name: profile.display_name || '',
+      bio: profile.bio || '',
+      role: profile.role || 'supporter',
+      location: profile.location || '',
+      in_person: profile.in_person || false,
+      monthly_goal: numericGoal,
+      photo_url: profile.photo_url || '',
 
-    const { error } = await supabase.from('profiles').upsert([
-  {
-    id: user.id,
-    display_name: profile.display_name || '',
-    bio: profile.bio || '',
-    role: profile.role || 'supporter',
-    location: profile.location || '',
-    in_person: profile.in_person || false,
-    monthly_goal: numericGoal,
-    photo_url: profile.photo_url || '',
-    // 👇 New fields
-    age,
-    hair_color: hairColor,
-    eye_color: eyeColor,
-    shoe_size: shoeSize,
-    weight_kg: weight,
-    height_m: height,
-    bra_size: braSize,
-    languages_spoken: languages,
-    ethnicity
+      // ✅ Safe numeric casting
+      age: age === '' ? null : parseInt(age),
+      hair_color: hairColor,
+      eye_color: eyeColor,
+      shoe_size: shoeSize === '' ? null : parseFloat(shoeSize),
+      weight_kg: weight === '' ? null : parseFloat(weight),
+      height_m: height === '' ? null : parseFloat(height),
+      bra_size: braSize,
+      languages_spoken: languages,
+      ethnicity
+    }
+  ])
+
+  if (error) {
+    console.error('Profile save error:', error)
+    setMessage('Error saving profile')
+  } else {
+    setMessage('Profile saved successfully!')
   }
-])
+}
+
 
 
     setMessage(error ? `Error: ${error.message}` : 'Profile saved successfully!')
