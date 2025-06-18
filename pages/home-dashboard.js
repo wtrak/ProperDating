@@ -85,12 +85,13 @@ const { data: setUnlocks, error: unlocksError } = await supabase
   .select(`
     supporter_id,
     created_at,
-    photo_sets(title, price),
+    photo_sets:photo_set_id(title, price),
     profiles:supporter_id(display_name, photo_url)
   `)
   .eq('creator_id', userId)
   .order('created_at', { ascending: false })
   .limit(10)
+
 
 if (unlocksError) {
   console.error('Error loading photo unlocks:', unlocksError.message)
