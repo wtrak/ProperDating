@@ -137,28 +137,35 @@ if (authUser?.user && authUser.user.id !== id) {
   }
 
   const handleBuyGift = async (gift) => {
-    if (!user) return router.push('/auth')
+  if (!user) return router.push('/auth')
 
-    const supporterId = user.id
-    const creatorId = gift.creator_id || id
-    const amount = parseInt(gift.price)
+  const supporterId = user.id
+  const creatorId = gift.creator_id || id
+  const amount = parseInt(gift.price)
 
-    const success = await transferTokens(supporterId, creatorId, amount)
+  const success = await transferTokens(supporterId, creatorId, amount)
 
-    if (!success) {
-      alert('Not enough tokens or transfer failed.')
-      return
-    }
-
-    await supabase.from('gift_purchases').insert({
-      gift_id: gift.id,
-      supporter_id: supporterId,
-      creator_id: creatorId,
-      price: amount,
-    })
-
-    alert('Gift sent successfully!')
+  if (!success) {
+    alert('Not enough tokens or transfer failed.')
+    return
   }
+
+  const { error } = await supabase.from('gift_purchases').insert({
+    gift_id: gift.id,
+    supporter_id: supporterId,
+    creator_id: creatorId,
+    price: amount,
+  })
+
+  if (error) {
+    console.error('Error inserting gift purchase:', error.message)
+    alert('Error sending gift: ' + error.message)
+    return
+  }
+
+  alert('Gift sent successfully!')
+}
+
 
 const handleUnlockMessaging = async () => {
   if (!user) return router.push('/auth')
