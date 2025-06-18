@@ -175,7 +175,7 @@ const [uploadingSetPhotos, setUploadingSetPhotos] = useState(false)
 
 
 
-    setMessage(error ? `Error: ${error.message}` : 'Profile saved successfully!')
+
   }
 
   const handleGiftChange = (e) => {
