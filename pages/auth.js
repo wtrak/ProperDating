@@ -9,6 +9,8 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [role, setRole] = useState('supporter')  // default to supporter
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -33,18 +35,19 @@ export default function AuthPage() {
       if (user) {
         console.log('Creating default profile for user ID:', user.id)
         const { error: profileError } = await supabase.from('profiles').insert([
-          {
-            id: user.id,
-            role: 'supporter',
-            display_name: 'New User',
-            bio: '',
-            location: '',
-            in_person: false,
-            monthly_goal: 0,
-            photo_url: '',
-            created_at: new Date().toISOString()
-          }
-        ])
+  {
+    id: user.id,
+    role: role,
+    display_name: 'New User',
+    bio: '',
+    location: '',
+    in_person: false,
+    monthly_goal: 0,
+    photo_url: '',
+    created_at: new Date().toISOString()
+  }
+])
+
         if (profileError) console.error('PROFILE INSERT ERROR:', profileError.message)
       } else {
         console.warn('Session never became available — skipping profile creation.')
@@ -54,7 +57,7 @@ export default function AuthPage() {
     if (authResult.error) {
       setError(authResult.error.message)
     } else {
-      router.push('/dashboard')
+      router.push('/home-dashboard')
     }
   }
 
@@ -89,6 +92,34 @@ export default function AuthPage() {
         </div>
 
         {error && <p className="text-red-500">{error}</p>}
+{!isLogin && (
+  <div className="space-y-2">
+    <p className="font-medium">I am signing up as a:</p>
+    <label className="block">
+      <input
+        type="radio"
+        name="role"
+        value="creator"
+        checked={role === 'creator'}
+        onChange={() => setRole('creator')}
+        className="mr-2"
+      />
+      Creator
+    </label>
+    <label className="block">
+      <input
+        type="radio"
+        name="role"
+        value="supporter"
+        checked={role === 'supporter'}
+        onChange={() => setRole('supporter')}
+        className="mr-2"
+      />
+      Supporter
+    </label>
+  </div>
+)}
+
 
         <button className="bg-blue-500 text-white p-2 w-full rounded" type="submit">
           {isLogin ? 'Login' : 'Sign Up'}
