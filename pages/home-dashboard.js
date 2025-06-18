@@ -72,21 +72,30 @@ const { data: giftBuyers } = await supabase
   .select(`
     supporter_id,
     price,
+    created_at,
     gifts(title),
     profiles:supporter_id(display_name, photo_url)
   `)
   .eq('creator_id', userId)
   .limit(10)
 
-const { data: setUnlocks } = await supabase
+
+const { data: setUnlocks, error: unlocksError } = await supabase
   .from('photo_purchases')
   .select(`
     supporter_id,
+    created_at,
     photo_sets(title, price),
     profiles:supporter_id(display_name, photo_url)
   `)
   .eq('creator_id', userId)
+  .order('created_at', { ascending: false })
   .limit(10)
+
+if (unlocksError) {
+  console.error('Error loading photo unlocks:', unlocksError.message)
+}
+
 
   const { data: supportLog } = await supabase
   .from('support_log')
@@ -112,8 +121,10 @@ supportLog?.forEach((entry) => {
     type: 'Support',
     item: 'Monthly/One-time Support',
     amount: entry.amount,
+    created_at: entry.created_at  // ✅ Add this
   })
 })
+
 
 giftBuyers?.forEach((g) => {
   recentSupporters.push({
@@ -123,8 +134,10 @@ giftBuyers?.forEach((g) => {
     type: 'Gift Purchase',
     item: g.gifts?.title,
     amount: g.price,
+    created_at: g.created_at  // ✅ Add this
   })
 })
+
 
 setUnlocks?.forEach((s) => {
   recentSupporters.push({
@@ -134,10 +147,14 @@ setUnlocks?.forEach((s) => {
     type: 'Photo Set',
     item: s.photo_sets?.title,
     amount: s.photo_sets?.price,
+    created_at: s.created_at  // ✅ Add this for sorting
   })
 })
 
+
+recentSupporters.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 setSupporters(recentSupporters)
+
 
 
     }
