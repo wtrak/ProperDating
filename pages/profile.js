@@ -32,7 +32,7 @@ const [monthlyGoal, setMonthlyGoal] = useState('');
     display_name: '',
     bio: '',
     role: 'supporter',
-    monthly_goal: '',
+    monthly_goal: null,
     location: '',
     in_person: false,
     photo_url: ''
