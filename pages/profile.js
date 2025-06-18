@@ -24,6 +24,8 @@ const [languages, setLanguages] = useState([]);
 const [ethnicity, setEthnicity] = useState('');
 
   const [user, setUser] = useState(null)
+  const [role, setRole] = useState(null)
+
   const [profile, setProfile] = useState({
     display_name: '',
     bio: '',
@@ -53,16 +55,19 @@ const [uploadingSetPhotos, setUploadingSetPhotos] = useState(false)
 
   useEffect(() => {
     const loadProfile = async () => {
-      const { data: authData } = await supabase.auth.getUser()
-      if (!authData?.user) return router.push('/auth')
-      const user = authData.user
-      setUser(user)
+      const { data: authUser } = await supabase.auth.getUser()
+if (!authUser?.user) return router.push('/auth')
+setUser(authUser.user)
+const userId = authUser.user.id
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle()
+const { data: profileData } = await supabase
+  .from('profiles')
+  .select('role')
+  .eq('id', userId)
+  .single()
+
+setRole(profileData?.role || 'supporter')
+
 
       if (error) {
         console.error('Profile fetch error:', error)
@@ -553,7 +558,17 @@ const handleExtraPhotoUpload = async (e, slot) => {
   ))}
 </select>
 
-      <label className="block"><input type="checkbox" name="in_person" checked={profile.in_person} onChange={handleChange} /> Open to In-Person Support</label>
+      {role === 'creator' && (
+  <label className="block">
+    <input
+      type="checkbox"
+      name="in_person"
+      checked={profile.in_person}
+      onChange={handleChange}
+    /> Open to In-Person Support
+  </label>
+)}
+
       {/* --- New Creator Attributes --- */}
 
 <label className="block font-semibold mt-4">Age</label>
@@ -565,115 +580,166 @@ const handleExtraPhotoUpload = async (e, slot) => {
   <option value="60+">60+</option>
 </select>
 
-<label className="block font-semibold mt-4">Hair Color</label>
-<select value={hairColor} onChange={e => setHairColor(e.target.value)} className="w-full border p-2 rounded">
-  <option value="">Select Hair Color</option>
-  <option value="Blonde">Blonde</option>
-  <option value="Brown">Brown</option>
-  <option value="Black">Black</option>
-  <option value="Red">Red</option>
-  <option value="Auburn">Auburn</option>
-  <option value="Gray">Gray</option>
-  <option value="Dyed">Dyed</option>
-  <option value="Bald/Shaved">Bald/Shaved</option>
-</select>
+{role === 'creator' && (
+  <>
+    <label className="block font-semibold mt-4">Hair Color</label>
+    <select value={hairColor} onChange={e => setHairColor(e.target.value)} className="w-full border p-2 rounded">
+      <option value="">Select Hair Color</option>
+      <option value="Blonde">Blonde</option>
+      <option value="Brown">Brown</option>
+      <option value="Black">Black</option>
+      <option value="Red">Red</option>
+      <option value="Auburn">Auburn</option>
+      <option value="Gray">Gray</option>
+      <option value="Dyed">Dyed</option>
+      <option value="Bald/Shaved">Bald/Shaved</option>
+    </select>
 
-<label className="block font-semibold mt-4">Eye Color</label>
-<select value={eyeColor} onChange={e => setEyeColor(e.target.value)} className="w-full border p-2 rounded">
-  <option value="">Select Eye Color</option>
-  <option value="Blue">Blue</option>
-  <option value="Brown">Brown</option>
-  <option value="Green">Green</option>
-  <option value="Hazel">Hazel</option>
-  <option value="Gray">Gray</option>
-  <option value="Other">Other</option>
-</select>
+    <label className="block font-semibold mt-4">Eye Color</label>
+    <select value={eyeColor} onChange={e => setEyeColor(e.target.value)} className="w-full border p-2 rounded">
+      <option value="">Select Eye Color</option>
+      <option value="Blue">Blue</option>
+      <option value="Brown">Brown</option>
+      <option value="Green">Green</option>
+      <option value="Hazel">Hazel</option>
+      <option value="Gray">Gray</option>
+      <option value="Other">Other</option>
+    </select>
 
-<label className="block font-semibold mt-4">Shoe Size (EU)</label>
-<select value={shoeSize} onChange={e => setShoeSize(e.target.value)} className="w-full border p-2 rounded">
-  <option value="">Select Shoe Size</option>
-  {Array.from({ length: 33 }, (_, i) => {
-    const size = (32 + i * 0.5).toFixed(1);
-    return <option key={size} value={size}>{size}</option>;
-  })}
-</select>
+    <label className="block font-semibold mt-4">Shoe Size (EU)</label>
+    <select value={shoeSize} onChange={e => setShoeSize(e.target.value)} className="w-full border p-2 rounded">
+      <option value="">Select Shoe Size</option>
+      {Array.from({ length: 33 }, (_, i) => {
+        const size = (32 + i * 0.5).toFixed(1);
+        return <option key={size} value={size}>{size}</option>;
+      })}
+    </select>
 
-<label className="block font-semibold mt-4">Weight (kg)</label>
-<select value={weight} onChange={e => setWeight(e.target.value)} className="w-full border p-2 rounded">
-  <option value="">Select Weight</option>
-  {Array.from({ length: 13 }, (_, i) => {
-    const w = 40 + i * 5;
-    return <option key={w} value={w}>{w} kg</option>;
-  })}
-  <option value="100+">100+ kg</option>
-</select>
+    <label className="block font-semibold mt-4">Weight (kg)</label>
+    <select value={weight} onChange={e => setWeight(e.target.value)} className="w-full border p-2 rounded">
+      <option value="">Select Weight</option>
+      {Array.from({ length: 13 }, (_, i) => {
+        const w = 40 + i * 5;
+        return <option key={w} value={w}>{w} kg</option>;
+      })}
+      <option value="100+">100+ kg</option>
+    </select>
 
-<label className="block font-semibold mt-4">Height (m)</label>
-<select value={height} onChange={e => setHeight(e.target.value)} className="w-full border p-2 rounded">
-  <option value="">Select Height</option>
-  {Array.from({ length: 17 }, (_, i) => {
-    const h = (1.30 + i * 0.05).toFixed(2);
-    return <option key={h} value={h}>{h} m</option>;
-  })}
-</select>
+    <label className="block font-semibold mt-4">Height (m)</label>
+    <select value={height} onChange={e => setHeight(e.target.value)} className="w-full border p-2 rounded">
+      <option value="">Select Height</option>
+      {Array.from({ length: 17 }, (_, i) => {
+        const h = (1.30 + i * 0.05).toFixed(2);
+        return <option key={h} value={h}>{h} m</option>;
+      })}
+    </select>
 
-<label className="block font-semibold mt-4">Bra Size</label>
-<select value={braSize} onChange={e => setBraSize(e.target.value)} className="w-full border p-2 rounded">
-  <option value="">Select Bra Size</option>
-  {['AA', 'A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G', 'Other'].map(size => (
-    <option key={size} value={size}>{size}</option>
-  ))}
-</select>
+    <label className="block font-semibold mt-4">Bra Size</label>
+    <select value={braSize} onChange={e => setBraSize(e.target.value)} className="w-full border p-2 rounded">
+      <option value="">Select Bra Size</option>
+      {['AA', 'A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G', 'Other'].map(size => (
+        <option key={size} value={size}>{size}</option>
+      ))}
+    </select>
 
-<label className="block font-semibold mt-4">Languages Spoken</label>
-<select
-  multiple
-  value={languages}
-  onChange={(e) => {
-    const selected = Array.from(e.target.selectedOptions, opt => opt.value)
-    setLanguages(selected)
-  }}
-  className="w-full border p-2 rounded h-40"
->
-  {['English', 'Polish', 'Spanish', 'German', 'French', 'Ukrainian', 'Russian', 'Italian', 'Other'].map(lang => (
-    <option key={lang} value={lang}>{lang}</option>
-  ))}
-</select>
+    <label className="block font-semibold mt-4">Languages Spoken</label>
+    <select
+      multiple
+      value={languages}
+      onChange={(e) => {
+        const selected = Array.from(e.target.selectedOptions, opt => opt.value)
+        setLanguages(selected)
+      }}
+      className="w-full border p-2 rounded h-40"
+    >
+      {['English', 'Polish', 'Spanish', 'German', 'French', 'Ukrainian', 'Russian', 'Italian', 'Other'].map(lang => (
+        <option key={lang} value={lang}>{lang}</option>
+      ))}
+    </select>
+
+    <label className="block font-semibold mt-4">Ethnicity</label>
+    <select value={ethnicity} onChange={e => setEthnicity(e.target.value)} className="w-full border p-2 rounded">
+      <option value="">Select Ethnicity</option>
+      <option value="Caucasian">Caucasian</option>
+      <option value="Black">Black</option>
+      <option value="Hispanic/Latina">Hispanic/Latina</option>
+      <option value="Asian">Asian</option>
+      <option value="Middle Eastern">Middle Eastern</option>
+      <option value="Mixed">Mixed</option>
+      <option value="Other">Other</option>
+    </select>
+  </>
+)}
 
 
-<label className="block font-semibold mt-4">Ethnicity</label>
-<select value={ethnicity} onChange={e => setEthnicity(e.target.value)} className="w-full border p-2 rounded">
-  <option value="">Select Ethnicity</option>
-  <option value="Caucasian">Caucasian</option>
-  <option value="Black">Black</option>
-  <option value="Hispanic/Latina">Hispanic/Latina</option>
-  <option value="Asian">Asian</option>
-  <option value="Middle Eastern">Middle Eastern</option>
-  <option value="Mixed">Mixed</option>
-  <option value="Other">Other</option>
-</select>
+{role === 'creator' && (
+  <>
+    <label className="block font-semibold mt-4">Monthly Goal</label>
+    <input
+      type="number"
+      placeholder="Monthly Goal"
+      value={monthlyGoal}
+      onChange={(e) => setMonthlyGoal(e.target.value)}
+    />
+  </>
+)}
 
-<label className="block font-semibold mt-4">Monthly Goal</label>
-      <input type="number" name="monthly_goal" value={profile.monthly_goal} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Monthly Goal" />
+
 
       <button onClick={handleSave} className="bg-green-600 text-white px-4 py-2 rounded">Save Profile</button>
       {message && <p>{message}</p>}
 
-      <hr className="my-6" />
-      <h2 className="text-xl font-semibold">Gift Options</h2>
-      {gifts.map(gift => (
-        <div key={gift.id} className="border p-2 rounded mb-2 flex justify-between">
-          <div><strong>{gift.title}</strong> - ${gift.price}<br /><span className="text-sm">{gift.description}</span></div>
-          <button onClick={() => handleDeleteGift(gift.id)} className="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+      {role === 'creator' && (
+  <>
+    <hr className="my-6" />
+    <h2 className="text-xl font-semibold">Gift Options</h2>
+    {gifts.map(gift => (
+      <div key={gift.id} className="border p-2 rounded mb-2 flex justify-between">
+        <div>
+          <strong>{gift.title}</strong> - ${gift.price}<br />
+          <span className="text-sm">{gift.description}</span>
         </div>
-      ))}
-      <input name="title" value={newGift.title} onChange={handleGiftChange} className="w-full border p-2 rounded" placeholder="Gift Title" />
-      <input name="description" value={newGift.description} onChange={handleGiftChange} className="w-full border p-2 rounded" placeholder="Gift Description" />
-      <input name="price" value={newGift.price} onChange={handleGiftChange} type="number" className="w-full border p-2 rounded" placeholder="Gift Price" />
-      <button onClick={handleAddGift} className="bg-blue-600 text-white px-4 py-2 rounded">Add Gift</button>
+        <button onClick={() => handleDeleteGift(gift.id)} className="bg-red-500 text-white px-2 py-1 rounded">
+          Delete
+        </button>
+      </div>
+    ))}
+    <input
+      name="title"
+      value={newGift.title}
+      onChange={handleGiftChange}
+      className="w-full border p-2 rounded"
+      placeholder="Gift Title"
+    />
+    <input
+      name="description"
+      value={newGift.description}
+      onChange={handleGiftChange}
+      className="w-full border p-2 rounded"
+      placeholder="Gift Description"
+    />
+    <input
+      name="price"
+      value={newGift.price}
+      onChange={handleGiftChange}
+      type="number"
+      className="w-full border p-2 rounded"
+      placeholder="Gift Price"
+    />
+    <button
+      onClick={handleAddGift}
+      className="bg-blue-600 text-white px-4 py-2 rounded"
+    >
+      Add Gift
+    </button>
+  </>
+)}
 
-      <hr className="my-6" />
-     <h2 className="text-xl font-semibold">Photo Sets</h2>
+
+      {role === 'creator' && (
+  <>
+    <hr className="my-6" />
+    <h2 className="text-xl font-semibold">Photo Sets</h2>
 {photoSets.map(set => (
   <div key={set.id} className="border p-2 rounded mb-2">
     {set.preview_url ? (
@@ -744,5 +810,8 @@ const handleExtraPhotoUpload = async (e, slot) => {
 
       <button onClick={handleAddPhotoSet} className="bg-purple-600 text-white px-4 py-2 rounded mt-2">Add Photo Set</button>
     </div>
+      </>
+)}
+
   )
 }
