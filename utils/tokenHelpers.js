@@ -23,25 +23,33 @@ export async function submitDateApplication({
   proposed_time,
   location,
   plan,
-  gift_ideas
+  gift_ideas,
+  why_yes,
+  boosted,
+  status = 'pending'
 }) {
+
   const success = await transferTokens(supporterId, creatorId, tokenFee)
   if (!success) {
     return { success: false, message: 'Not enough tokens' }
   }
 
   const { error } = await supabase.from('date_applications').insert([
-    {
-      supporter_id: supporterId,
-      creator_id: creatorId,
-      token_fee: tokenFee, // ✅ make sure this is included
-      proposed_date,
-      proposed_time,
-      location,
-      plan,
-      gift_ideas
-    }
-  ])
+  {
+    supporter_id: supporterId,
+    creator_id: creatorId,
+    token_fee: tokenFee,
+    proposed_date,
+    proposed_time,
+    location,
+    plan,
+    gift_ideas,
+    why_yes,
+    boosted,
+    status
+  }
+])
+
 
   if (error) {
     console.error('Date application error:', error.message)

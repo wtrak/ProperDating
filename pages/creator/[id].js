@@ -227,14 +227,19 @@ const handleUnlockMessaging = async () => {
 
   const handleDateApplication = async () => {
   if (!user) return router.push('/auth')
-  const tokenFee = 50
 
-  const result = await submitDateApplication({
-    supporterId: user.id,
-    creatorId: id,
-    tokenFee,
-    ...appForm
-  })
+
+  const boostCost = appForm.boosted ? 25 : 0
+const tokenFee = 50 + boostCost
+
+const result = await submitDateApplication({
+  supporterId: user.id,
+  creatorId: id,
+  tokenFee,
+  ...appForm,
+  status: 'pending'
+})
+
 
   if (result.success) {
     setAppMessage('Application submitted!')
@@ -484,6 +489,23 @@ const handleUnlockSet = async (set) => {
     className="w-full border p-2 rounded mb-2"
     placeholder="Optional: gift ideas"
   />
+  <textarea
+  value={appForm.why_yes || ''}
+  onChange={(e) => setAppForm({ ...appForm, why_yes: e.target.value })}
+  className="w-full border p-2 rounded mb-2"
+  placeholder="Tell them why they should say yes..."
+/>
+
+<label className="flex items-center mb-4">
+  <input
+    type="checkbox"
+    className="mr-2"
+    checked={appForm.boosted || false}
+    onChange={(e) => setAppForm({ ...appForm, boosted: e.target.checked })}
+  />
+  Boost my application for +25 tokens
+</label>
+
 
   <button
     onClick={handleDateApplication}

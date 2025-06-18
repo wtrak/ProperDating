@@ -177,43 +177,59 @@ setSupporters(recentSupporters)
         {applications.length === 0 ? (
           <p className="text-sm text-gray-500">No applications yet.</p>
         ) : (
-          <ul className="space-y-3">
-            {applications.map((app) => (
-              <li key={app.id} className="border p-3 rounded">
-                <p><strong>Date:</strong> {app.proposed_date} at {app.proposed_time}</p>
-                <p><strong>Location:</strong> {app.location}</p>
-                <p><strong>Plan:</strong> {app.plan}</p>
-                {app.gift_ideas && <p><strong>Gift Ideas:</strong> {app.gift_ideas}</p>}
-                <p className="text-xs text-gray-400">From: {app.supporter_id}</p>
-              </li>
-            ))}
-          </ul>
+          <ul className="space-y-4">
+  {applications.map((app) => (
+    <li key={app.id} className="border p-4 rounded relative">
+      <p className="text-sm text-gray-500 mb-1">From: {app.supporter_id}</p>
+
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-sm font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+          Status: {app.status}
+        </span>
+        {app.boosted && (
+          <span className="text-xs px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full">🚀 Boosted</span>
         )}
       </div>
 
-      <div className="border p-4 rounded shadow">
-        <h2 className="text-lg font-semibold mb-2">Recently Viewed Your Profile</h2>
-        {recentViewers.length === 0 ? (
-          <p className="text-sm text-gray-500">No recent viewers yet.</p>
-        ) : (
-          <ul className="space-y-2">
-            {recentViewers.map((view, i) => (
-              <li
-                key={i}
-                onClick={() => router.push(`/creator/${view.viewer_id || view.profiles?.id}`)}
-                className="flex items-center space-x-3 cursor-pointer hover:bg-gray-100 p-2 rounded"
-              >
-                <img
-                  src={view.profiles?.photo_url || '/default-avatar.png'}
-                  alt="Viewer"
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-                <span className="font-medium">
-                  {view.profiles?.display_name || 'Unknown'}
-                </span>
-              </li>
-            ))}
-          </ul>
+      <p><strong>Date:</strong> {app.proposed_date} at {app.proposed_time}</p>
+      <p><strong>Location:</strong> {app.location}</p>
+      <p><strong>Plan:</strong> {app.plan}</p>
+      {app.gift_ideas && <p><strong>Gift Ideas:</strong> {app.gift_ideas}</p>}
+      {app.why_yes && <p><strong>Why Say Yes:</strong> {app.why_yes}</p>}
+      {app.creator_response && (
+        <p className="mt-2 text-sm italic text-red-600">
+          Response: {app.creator_response}
+        </p>
+      )}
+
+      {app.status === 'pending' && (
+        <div className="mt-4 space-y-2">
+          <button
+            className="bg-green-600 text-white px-3 py-1 rounded"
+            onClick={async () => {
+              await supabase
+                .from('date_applications')
+                .update({ status: 'accepted' })
+                .eq('id', app.id)
+              setApplications((prev) =>
+                prev.map((a) => (a.id === app.id ? { ...a, status: 'accepted' } : a))
+              )
+            }}
+          >
+            ✅ Accept
+          </button>
+
+          <DeclineWithNote app={app} onUpdate={(updatedApp) => {
+            setApplications((prev) =>
+              prev.map((a) => (a.id === app.id ? updatedApp : a))
+            )
+          }} />
+        </div>
+      )}
+    </li>
+  ))}
+</ul>
+
         )}
       </div>  
 
@@ -250,3 +266,53 @@ setSupporters(recentSupporters)
 </div>  // ✅ closes the main wrapper <div className="max-w-2xl mx-auto ...">
 )       // ✅ closes the return statement
 }       // ✅ closes the function
+function DeclineWithNote({ app, onUpdate }) {
+  const [open, setOpen] = useState(false)
+  const [note, setNote] = useState('')
+
+  const handleDecline = async () => {
+    const { error } = await supabase
+      .from('date_applications')
+      .update({ status: 'declined', creator_response: note })
+      .eq('id', app.id)
+
+    if (!error) {
+      onUpdate({ ...app, status: 'declined', creator_response: note })
+    }
+  }
+
+  if (!open) {
+    return (
+      <button
+        className="bg-red-500 text-white px-3 py-1 rounded"
+        onClick={() => setOpen(true)}
+      >
+        ❌ Decline
+      </button>
+    )
+  }
+
+  return (
+    <div className="mt-2 space-y-2">
+      <textarea
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder="Optional: Suggest something else or explain why"
+        className="w-full border p-2 rounded text-sm"
+      />
+      <button
+        className="bg-red-600 text-white px-3 py-1 rounded"
+        onClick={handleDecline}
+      >
+        Submit Decline
+      </button>
+      <button
+        className="text-sm text-gray-500 underline"
+        onClick={() => setOpen(false)}
+      >
+        Cancel
+      </button>
+    </div>
+  )
+}
+
