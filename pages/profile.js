@@ -76,20 +76,19 @@ setRole(profileData?.role || 'supporter')
 }
 
 
-      if (data) {
-  setProfile({ ...data })
-
-  // 👇 Populate form dropdowns from Supabase
-  setAge(data.age || '')
-  setHairColor(data.hair_color || '')
-  setEyeColor(data.eye_color || '')
-  setShoeSize(data.shoe_size || '')
-  setWeight(data.weight_kg || '')
-  setHeight(data.height_m || '')
-  setBraSize(data.bra_size || '');
-  setLanguages(data.languages_spoken || []);
-  setEthnicity(data.ethnicity || '')
+      if (profileData) {
+  setProfile({ ...profileData })
+  setAge(profileData.age || '')
+  setHairColor(profileData.hair_color || '')
+  setEyeColor(profileData.eye_color || '')
+  setShoeSize(profileData.shoe_size || '')
+  setWeight(profileData.weight_kg || '')
+  setHeight(profileData.height_m || '')
+  setBraSize(profileData.bra_size || '')
+  setLanguages(profileData.languages_spoken || [])
+  setEthnicity(profileData.ethnicity || '')
 }
+
 
       const { data: updatedGifts } = await supabase.from('gifts').select('*').eq('creator_id', user.id)
       setGifts(updatedGifts || [])
