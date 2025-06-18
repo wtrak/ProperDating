@@ -78,6 +78,7 @@ const [uploadingSetPhotos, setUploadingSetPhotos] = useState(false)
     }
 
     setProfile({ ...profileData })
+    setMonthlyGoal(profileData.monthly_goal?.toString() || '')
     setRole(profileData.role || 'supporter')
     setAge(profileData.age || '')
     setHairColor(profileData.hair_color || '')
