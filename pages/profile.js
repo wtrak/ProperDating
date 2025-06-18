@@ -174,10 +174,6 @@ const [uploadingSetPhotos, setUploadingSetPhotos] = useState(false)
 }
 
 
-
-
-  }
-
   const handleGiftChange = (e) => {
     setNewGift({ ...newGift, [e.target.name]: e.target.value })
   }
