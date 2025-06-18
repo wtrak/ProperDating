@@ -262,6 +262,35 @@ setSupporters(recentSupporters)
     </ul>
   )}
 </div>  
+<div className="border p-4 rounded shadow">
+  <h2 className="text-lg font-semibold mb-2">Recently Viewed Your Profile</h2>
+  {recentViewers.length === 0 ? (
+    <p className="text-sm text-gray-500">No recent viewers yet.</p>
+  ) : (
+    <ul className="space-y-2">
+      {recentViewers.map((view, i) => (
+        <li
+          key={i}
+          onClick={() => router.push(`/supporter/${view.viewer_id || view.profiles?.id}`)}
+          className="flex items-center justify-between p-2 rounded hover:bg-gray-50 cursor-pointer"
+        >
+          <div className="flex items-center space-x-3">
+            <img
+              src={view.profiles?.photo_url || '/default-avatar.png'}
+              alt="Viewer"
+              className="w-10 h-10 rounded-full object-cover"
+            />
+            <div>
+              <p className="font-medium">{view.profiles?.display_name || 'Anonymous'}</p>
+              <p className="text-sm text-gray-500">Viewed your profile</p>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400">{new Date(view.viewed_at).toLocaleDateString()}</p>
+        </li>
+      ))}
+    </ul>
+  )}
+</div>
 
 </div>  // ✅ closes the main wrapper <div className="max-w-2xl mx-auto ...">
 )       // ✅ closes the return statement
