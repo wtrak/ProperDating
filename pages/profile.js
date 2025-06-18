@@ -69,12 +69,12 @@ const { data: profileData } = await supabase
 setRole(profileData?.role || 'supporter')
 
 
-      if (error) {
-        console.error('Profile fetch error:', error)
-        setMessage(`Error fetching profile: ${error.message}`)
-        setLoading(false)
-        return
-      }
+      if (!profileData) {
+  setMessage('Profile not found')
+  setLoading(false)
+  return
+}
+
 
       if (data) {
   setProfile({ ...data })
@@ -740,78 +740,98 @@ const handleExtraPhotoUpload = async (e, slot) => {
   <>
     <hr className="my-6" />
     <h2 className="text-xl font-semibold">Photo Sets</h2>
-{photoSets.map(set => (
-  <div key={set.id} className="border p-2 rounded mb-2">
-    {set.preview_url ? (
-      <img src={set.preview_url} alt="Preview" className="w-full h-48 object-cover rounded mb-1" />
-    ) : (
-      <div className="w-full h-48 bg-gray-100 flex items-center justify-center text-gray-500 rounded mb-1">
-        No preview image
+
+    {photoSets.map(set => (
+      <div key={set.id} className="border p-2 rounded mb-2">
+        {set.preview_url ? (
+          <img src={set.preview_url} alt="Preview" className="w-full h-48 object-cover rounded mb-1" />
+        ) : (
+          <div className="w-full h-48 bg-gray-100 flex items-center justify-center text-gray-500 rounded mb-1">
+            No preview image
+          </div>
+        )}
+        <div><strong>{set.title}</strong> – ${set.price}</div>
+
+        <button
+          onClick={() => handleDeletePhotoSet(set.id)}
+          className="mt-2 bg-red-600 text-white px-4 py-1 rounded"
+        >
+          Delete Photo Set
+        </button>
       </div>
-    )}
-    <div><strong>{set.title}</strong> – ${set.price}</div>
+    ))}
 
-    <button
-      onClick={() => handleDeletePhotoSet(set.id)}
-      className="mt-2 bg-red-600 text-white px-4 py-1 rounded"
-    >
-      Delete Photo Set
-    </button>
-  </div>
-))}
+    <input
+      name="title"
+      value={newPhotoSet.title}
+      onChange={handleSetChange}
+      className="w-full border p-2 rounded"
+      placeholder="Photo Set Title"
+    />
+    <input
+      name="price"
+      value={newPhotoSet.price}
+      onChange={handleSetChange}
+      type="number"
+      className="w-full border p-2 rounded"
+      placeholder="Price"
+    />
 
-
-      <input name="title" value={newPhotoSet.title} onChange={handleSetChange} className="w-full border p-2 rounded" placeholder="Photo Set Title" />
-      <input name="price" value={newPhotoSet.price} onChange={handleSetChange} type="number" className="w-full border p-2 rounded" placeholder="Price" />
-      {/* Preview Image Upload */}
-<div className="mb-2">
-  <input
-    type="file"
-    id="preview-upload"
-    accept="image/*"
-    className="hidden"
-    onChange={(e) => setPreview(e.target.files[0])}
-  />
-  {uploadingPreview && <p className="text-sm text-yellow-600 mt-1">Uploading preview image...</p>}
-
-  <label
-    htmlFor="preview-upload"
-    className="inline-block bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
-  >
-    {preview ? 'Change Preview Image' : 'Upload Preview Image'}
-  </label>
-  {preview && (
-    <span className="ml-2 text-sm text-gray-600">{preview.name}</span>
-  )}
-</div>
-
-{/* Unlockable Photos Upload */}
-<div className="mb-4">
-  <input
-    type="file"
-    id="set-upload"
-    multiple
-    accept="image/*"
-    className="hidden"
-    onChange={(e) => setPhotos(Array.from(e.target.files))}
-  />
-  <label
-    htmlFor="set-upload"
-    className="inline-block bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
-  >
-    {photos.length > 0 ? 'Change Unlockable Photos' : 'Upload Unlockable Photos'}
-  </label>
-  {photos.length > 0 && (
-    <span className="ml-2 text-sm text-gray-600">{photos.length} file{photos.length > 1 ? 's' : ''} selected</span>
-  )}
-  {uploadingSetPhotos && <p className="text-sm text-yellow-600 mt-1">Uploading photo set content...</p>}
-
-</div>
-
-      <button onClick={handleAddPhotoSet} className="bg-purple-600 text-white px-4 py-2 rounded mt-2">Add Photo Set</button>
+    {/* Preview Image Upload */}
+    <div className="mb-2">
+      <input
+        type="file"
+        id="preview-upload"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => setPreview(e.target.files[0])}
+      />
+      {uploadingPreview && <p className="text-sm text-yellow-600 mt-1">Uploading preview image...</p>}
+      <label
+        htmlFor="preview-upload"
+        className="inline-block bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
+      >
+        {preview ? 'Change Preview Image' : 'Upload Preview Image'}
+      </label>
+      {preview && (
+        <span className="ml-2 text-sm text-gray-600">{preview.name}</span>
+      )}
     </div>
-      </>
-)}
 
-  )
+    {/* Unlockable Photos Upload */}
+    <div className="mb-4">
+      <input
+        type="file"
+        id="set-upload"
+        multiple
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => setPhotos(Array.from(e.target.files))}
+      />
+      <label
+        htmlFor="set-upload"
+        className="inline-block bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
+      >
+        {photos.length > 0 ? 'Change Unlockable Photos' : 'Upload Unlockable Photos'}
+      </label>
+      {photos.length > 0 && (
+        <span className="ml-2 text-sm text-gray-600">
+          {photos.length} file{photos.length > 1 ? 's' : ''} selected
+        </span>
+      )}
+      {uploadingSetPhotos && (
+        <p className="text-sm text-yellow-600 mt-1">Uploading photo set content...</p>
+      )}
+
+      <button
+        onClick={handleAddPhotoSet}
+        className="bg-purple-600 text-white px-4 py-2 rounded mt-2"
+      >
+        Add Photo Set
+      </button>
+    </div>
+  </>
+)}
+          </div>
+  );
 }
