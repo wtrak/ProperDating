@@ -138,7 +138,8 @@ const [uploadingSetPhotos, setUploadingSetPhotos] = useState(false)
 
   const handleSave = async () => {
     setMessage('')
-   const numericGoal = monthlyGoal === '' ? null : parseFloat(monthlyGoal)
+   const numericGoal = /^\d+(\.\d+)?$/.test(monthlyGoal) ? parseFloat(monthlyGoal) : null
+
 
 
     const { error } = await supabase.from('profiles').upsert([
