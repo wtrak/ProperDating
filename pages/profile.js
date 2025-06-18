@@ -146,7 +146,7 @@ const [uploadingSetPhotos, setUploadingSetPhotos] = useState(false)
       id: user.id,
       display_name: profile.display_name || '',
       bio: profile.bio || '',
-      role: profile.role || 'supporter',
+      
       location: profile.location || '',
       in_person: profile.in_person || false,
       monthly_goal: numericGoal,
@@ -534,10 +534,7 @@ const handleExtraPhotoUpload = async (e, slot) => {
 
       <input name="display_name" value={profile.display_name} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Display Name" />
       <textarea name="bio" value={profile.bio} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Bio" />
-      <select name="role" value={profile.role} onChange={handleChange} className="w-full border p-2 rounded">
-        <option value="supporter">Supporter</option>
-        <option value="creator">Creator</option>
-      </select>
+      
       <label className="block font-semibold mt-4">City</label>
 <select
   name="location"
