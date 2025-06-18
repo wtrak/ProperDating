@@ -54,56 +54,64 @@ const [uploadingSetPhotos, setUploadingSetPhotos] = useState(false)
 
 
   useEffect(() => {
-    const loadProfile = async () => {
-      const { data: authUser } = await supabase.auth.getUser()
-if (!authUser?.user) return router.push('/auth')
-setUser(authUser.user)
-const userId = authUser.user.id
+  const loadProfile = async () => {
+    const { data: authUser } = await supabase.auth.getUser()
+    if (!authUser?.user) return router.push('/auth')
 
-const { data: profileData } = await supabase
-  .from('profiles')
-  .select('role')
-  .eq('id', userId)
-  .single()
+    const user = authUser.user
+    setUser(user)
 
-setRole(profileData?.role || 'supporter')
+    const userId = user.id
 
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*') // fetch full profile so we can use its fields
+      .eq('id', userId)
+      .single()
 
-      if (!profileData) {
-  setMessage('Profile not found')
-  setLoading(false)
-  return
-}
-
-
-      if (profileData) {
-  setProfile({ ...profileData })
-  setAge(profileData.age || '')
-  setHairColor(profileData.hair_color || '')
-  setEyeColor(profileData.eye_color || '')
-  setShoeSize(profileData.shoe_size || '')
-  setWeight(profileData.weight_kg || '')
-  setHeight(profileData.height_m || '')
-  setBraSize(profileData.bra_size || '')
-  setLanguages(profileData.languages_spoken || [])
-  setEthnicity(profileData.ethnicity || '')
-}
-
-
-      const { data: updatedGifts } = await supabase.from('gifts').select('*').eq('creator_id', user.id)
-      setGifts(updatedGifts || [])
-
-      const { data: updatedSets } = await supabase.from('photo_sets').select('*').eq('creator_id', user.id)
-      setPhotoSets(updatedSets || [])
-
-      const { data: extra } = await supabase.from('extra_profile_photos').select('*').eq('user_id', user.id).limit(5)
-      setExtraPhotos(extra || [])
-
+    if (!profileData) {
+      setMessage('Profile not found')
       setLoading(false)
+      return
     }
 
-    loadProfile()
-  }, [])
+    setProfile({ ...profileData })
+    setRole(profileData.role || 'supporter')
+    setAge(profileData.age || '')
+    setHairColor(profileData.hair_color || '')
+    setEyeColor(profileData.eye_color || '')
+    setShoeSize(profileData.shoe_size || '')
+    setWeight(profileData.weight_kg || '')
+    setHeight(profileData.height_m || '')
+    setBraSize(profileData.bra_size || '')
+    setLanguages(profileData.languages_spoken || [])
+    setEthnicity(profileData.ethnicity || '')
+
+    const { data: updatedGifts } = await supabase
+      .from('gifts')
+      .select('*')
+      .eq('creator_id', userId)
+    setGifts(updatedGifts || [])
+
+    const { data: updatedSets } = await supabase
+      .from('photo_sets')
+      .select('*')
+      .eq('creator_id', userId)
+    setPhotoSets(updatedSets || [])
+
+    const { data: extra } = await supabase
+      .from('extra_profile_photos')
+      .select('*')
+      .eq('user_id', userId)
+      .limit(5)
+    setExtraPhotos(extra || [])
+
+    setLoading(false)
+  }
+
+  loadProfile()
+}, [])
+
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
