@@ -88,7 +88,32 @@ const { data: setUnlocks } = await supabase
   .eq('creator_id', userId)
   .limit(10)
 
-const recentSupporters = []
+  const { data: supportLog } = await supabase
+  .from('support_log')
+  .select(`
+    supporter_id,
+    amount,
+    created_at,
+    profiles:supporter_id(display_name, photo_url)
+  `)
+  .eq('creator_id', userId)
+  .order('created_at', { ascending: false })
+  .limit(10)
+
+const recentSupporters = []  // move this line to here
+
+// Now you're safe to populate it:
+
+supportLog?.forEach((entry) => {
+  recentSupporters.push({
+    supporter_id: entry.supporter_id,
+    display_name: entry.profiles?.display_name,
+    photo_url: entry.profiles?.photo_url,
+    type: 'Support',
+    item: 'Monthly/One-time Support',
+    amount: entry.amount,
+  })
+})
 
 giftBuyers?.forEach((g) => {
   recentSupporters.push({
@@ -113,6 +138,7 @@ setUnlocks?.forEach((s) => {
 })
 
 setSupporters(recentSupporters)
+
 
     }
 
