@@ -246,6 +246,35 @@ const handleUnlockMessaging = async () => {
 
   
 if (!creator) return <p className="p-4">Loading...</p>
+const handleUnlockSet = async (set) => {
+  if (!user) return router.push('/auth')
+
+  const supporterId = user.id
+  const creatorId = set.creator_id || id
+  const amount = parseInt(set.price)
+
+  const success = await transferTokens(supporterId, creatorId, amount)
+
+  if (!success) {
+    alert('Not enough tokens or transfer failed.')
+    return
+  }
+
+  const { error } = await supabase.from('photo_purchases').insert({
+    photo_set_id: set.id,
+    supporter_id: supporterId,
+    creator_id: creatorId,
+  })
+
+  if (error) {
+    console.error('Photo set unlock failed:', error.message)
+    alert('Failed to unlock photo set: ' + error.message)
+    return
+  }
+
+  alert('Photo set unlocked successfully!')
+}
+
   return (
     <div className="max-w-xl mx-auto p-6 space-y-4">
       {creator.photo_url && (
@@ -404,11 +433,11 @@ if (!creator) return <p className="p-4">Loading...</p>
           <p className="font-semibold">{set.title}</p>
           <p>{set.price} tokens</p>
           <button
-            className="mt-2 bg-purple-600 text-white px-4 py-1 rounded"
-            onClick={() => alert('Unlock logic will go here')}
-          >
-            Unlock Set
-          </button>
+  className="mt-2 bg-purple-600 text-white px-4 py-1 rounded"
+  onClick={() => handleUnlockSet(set)}
+>
+  Unlock Set
+</button>
         </div>
       )
     })}
