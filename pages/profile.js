@@ -141,7 +141,9 @@ const [uploadingSetPhotos, setUploadingSetPhotos] = useState(false)
 
   const numericGoal = /^\d+(\.\d+)?$/.test(monthlyGoal) ? parseFloat(monthlyGoal) : null
 
-  const { error } = await supabase.from('profiles').upsert([
+  console.log('Saving with role:', role) // ✅ Debug log
+
+const { error } = await supabase.from('profiles').upsert([
   {
     id: user.id,
     display_name: profile.display_name || '',
@@ -150,8 +152,9 @@ const [uploadingSetPhotos, setUploadingSetPhotos] = useState(false)
     in_person: profile.in_person || false,
     monthly_goal: numericGoal,
     photo_url: profile.photo_url || '',
-    role: role || 'supporter', // ✅ Add this line
+    role: role || 'supporter', // ✅ This line is critical
 
+    // Custom fields
     age: age === '' ? null : parseInt(age),
     hair_color: hairColor,
     eye_color: eyeColor,
@@ -163,6 +166,7 @@ const [uploadingSetPhotos, setUploadingSetPhotos] = useState(false)
     ethnicity
   }
 ])
+
 
 
   if (error) {
