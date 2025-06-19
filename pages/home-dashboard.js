@@ -294,7 +294,7 @@ if (!userRole) return <p className="p-4">Loading dashboard...</p>
       {supporters.map((s, i) => (
         <li
           key={i}
-          onClick={() => router.push(`/supporter/${s.supporter_id}`)}
+          onClick={() => router.push(`/creator//${s.supporter_id}`)}
           className="flex items-center justify-between p-2 rounded hover:bg-gray-50 cursor-pointer"
         >
           <div className="flex items-center space-x-3">
@@ -323,7 +323,7 @@ if (!userRole) return <p className="p-4">Loading dashboard...</p>
       {recentViewers.map((view, i) => (
         <li
           key={i}
-          onClick={() => router.push(`/supporter/${view.viewer_id || view.profiles?.id}`)}
+          onClick={() => router.push(`/creator/${view.viewer_id || view.profiles?.id}`)}
           className="flex items-center justify-between p-2 rounded hover:bg-gray-50 cursor-pointer"
         >
           <div className="flex items-center space-x-3">
