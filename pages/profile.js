@@ -142,28 +142,28 @@ const [uploadingSetPhotos, setUploadingSetPhotos] = useState(false)
   const numericGoal = /^\d+(\.\d+)?$/.test(monthlyGoal) ? parseFloat(monthlyGoal) : null
 
   const { error } = await supabase.from('profiles').upsert([
-    {
-      id: user.id,
-      display_name: profile.display_name || '',
-      bio: profile.bio || '',
-      
-      location: profile.location || '',
-      in_person: profile.in_person || false,
-      monthly_goal: numericGoal,
-      photo_url: profile.photo_url || '',
+  {
+    id: user.id,
+    display_name: profile.display_name || '',
+    bio: profile.bio || '',
+    location: profile.location || '',
+    in_person: profile.in_person || false,
+    monthly_goal: numericGoal,
+    photo_url: profile.photo_url || '',
+    role: role || 'supporter', // ✅ Add this line
 
-      // ✅ Safe numeric casting
-      age: age === '' ? null : parseInt(age),
-      hair_color: hairColor,
-      eye_color: eyeColor,
-      shoe_size: shoeSize === '' ? null : parseFloat(shoeSize),
-      weight_kg: weight === '' ? null : parseFloat(weight),
-      height_m: height === '' ? null : parseFloat(height),
-      bra_size: braSize,
-      languages_spoken: languages,
-      ethnicity
-    }
-  ])
+    age: age === '' ? null : parseInt(age),
+    hair_color: hairColor,
+    eye_color: eyeColor,
+    shoe_size: shoeSize === '' ? null : parseFloat(shoeSize),
+    weight_kg: weight === '' ? null : parseFloat(weight),
+    height_m: height === '' ? null : parseFloat(height),
+    bra_size: braSize,
+    languages_spoken: languages,
+    ethnicity
+  }
+])
+
 
   if (error) {
     console.error('Profile save error:', error)
