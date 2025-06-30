@@ -59,14 +59,28 @@ export default function Cashout() {
         type="number"
         value={tokens}
         onChange={e => setTokens(e.target.value)}
-        style={{ width: '100%', padding: '10px', marginBottom: '20px' }}
+        style={{
+          width: '100%',
+          padding: '10px',
+          marginBottom: '20px',
+          backgroundColor: '#ffffff',
+          border: '1px solid #999',
+          borderRadius: '4px'
+        }}
       />
 
       <label>💳 Choose Payout Method:</label>
       <select
         value={method}
         onChange={e => setMethod(e.target.value)}
-        style={{ width: '100%', padding: '10px', marginBottom: '20px' }}
+        style={{
+          width: '100%',
+          padding: '10px',
+          marginBottom: '20px',
+          backgroundColor: '#ffffff',
+          border: '1px solid #999',
+          borderRadius: '4px'
+        }}
       >
         <option value="crypto">Crypto (USDT - TRC20)</option>
         <option value="bank">Bank Transfer</option>
@@ -74,12 +88,19 @@ export default function Cashout() {
 
       {method === 'crypto' && (
         <>
-          <label>🪙 Your USDT Wallet Address:</label>
+          <label>🌐 Your USDT Wallet Address:</label>
           <input
             type="text"
             value={wallet}
             onChange={e => setWallet(e.target.value)}
-            style={{ width: '100%', padding: '10px', marginBottom: '20px' }}
+            style={{
+              width: '100%',
+              padding: '10px',
+              marginBottom: '20px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #999',
+              borderRadius: '4px'
+            }}
           />
         </>
       )}
@@ -91,14 +112,29 @@ export default function Cashout() {
             type="text"
             value={iban}
             onChange={e => setIban(e.target.value)}
-            style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+            style={{
+              width: '100%',
+              padding: '10px',
+              marginBottom: '10px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #999',
+              borderRadius: '4px'
+            }}
           />
+
           <label>👤 Account Holder Name:</label>
           <input
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            style={{ width: '100%', padding: '10px', marginBottom: '20px' }}
+            style={{
+              width: '100%',
+              padding: '10px',
+              marginBottom: '20px',
+              backgroundColor: '#ffffff',
+              border: '1px solid #999',
+              borderRadius: '4px'
+            }}
           />
         </>
       )}
@@ -118,7 +154,9 @@ export default function Cashout() {
         📤 Submit Cashout Request
       </button>
 
-      {status && <p style={{ marginTop: '20px', fontWeight: 'bold', textAlign: 'center' }}>{status}</p>}
+      {status && (
+        <p style={{ marginTop: '20px', fontWeight: 'bold', textAlign: 'center' }}>{status}</p>
+      )}
     </div>
   );
 }
