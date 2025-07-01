@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+  import { useRouter } from 'next/router'; // Add to top with other imports
 
 export default function Cashout() {
   const [userId, setUserId] = useState('');
@@ -10,13 +11,39 @@ export default function Cashout() {
   const [name, setName] = useState('');
   const [status, setStatus] = useState('');
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) setUserId(user.id);
-    };
-    fetchUser();
-  }, []);
+
+const [role, setRole] = useState('');
+const [loading, setLoading] = useState(true);
+const router = useRouter();
+
+useEffect(() => {
+  const fetchUserAndRole = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      router.push('/'); // not logged in
+      return;
+    }
+
+    setUserId(user.id);
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (error || !data || data.role !== 'creator') {
+      router.push('/'); // not a creator
+      return;
+    }
+
+    setRole(data.role);
+    setLoading(false);
+  };
+
+  fetchUserAndRole();
+}, [router]);
+
 
   const handleSubmit = async () => {
     if (!userId || !tokens || parseInt(tokens) < 10) {
@@ -46,6 +73,11 @@ export default function Cashout() {
       setName('');
     }
   };
+
+if (loading) {
+  return <p style={{ textAlign: 'center', paddingTop: '100px' }}>Loading...</p>;
+}
+
 
   return (
     <div style={{ fontFamily: 'sans-serif', padding: '40px', maxWidth: '700px', margin: 'auto' }}>
