@@ -722,34 +722,41 @@ const handleExtraPhotoUpload = async (e, slot) => {
         </button>
       </div>
     ))}
-    <input
-      name="title"
-      value={newGift.title}
-      onChange={handleGiftChange}
-      className="w-full border p-2 rounded"
-      placeholder="Gift Title"
-    />
-    <input
-      name="description"
-      value={newGift.description}
-      onChange={handleGiftChange}
-      className="w-full border p-2 rounded"
-      placeholder="Gift Description"
-    />
-    <input
-      name="price"
-      value={newGift.price}
-      onChange={handleGiftChange}
-      type="number"
-      className="w-full border p-2 rounded"
-      placeholder="Gift Price"
-    />
-    <button
-      onClick={handleAddGift}
-      className="bg-blue-600 text-white px-4 py-2 rounded"
-    >
-      Add Gift
-    </button>
+    <label className="block font-semibold mt-4">Gift Title</label>
+<input
+  name="title"
+  value={newGift.title}
+  onChange={handleGiftChange}
+  className="w-full border p-2 rounded"
+  placeholder=""
+/>
+
+<label className="block font-semibold mt-2">Gift Description</label>
+<input
+  name="description"
+  value={newGift.description}
+  onChange={handleGiftChange}
+  className="w-full border p-2 rounded"
+  placeholder=""
+/>
+
+<label className="block font-semibold mt-2">Gift Price</label>
+<input
+  name="price"
+  value={newGift.price}
+  onChange={handleGiftChange}
+  type="number"
+  className="w-full border p-2 rounded"
+  placeholder=""
+/>
+
+<button
+  onClick={handleAddGift}
+  className="bg-blue-600 text-white px-4 py-2 rounded mt-2"
+>
+  Add Gift
+</button>
+
   </>
 )}
 
@@ -779,21 +786,25 @@ const handleExtraPhotoUpload = async (e, slot) => {
       </div>
     ))}
 
-    <input
-      name="title"
-      value={newPhotoSet.title}
-      onChange={handleSetChange}
-      className="w-full border p-2 rounded"
-      placeholder="Photo Set Title"
-    />
-    <input
-      name="price"
-      value={newPhotoSet.price}
-      onChange={handleSetChange}
-      type="number"
-      className="w-full border p-2 rounded"
-      placeholder="Price"
-    />
+    <label className="block font-semibold mt-4">Photo Set Title</label>
+<input
+  name="title"
+  value={newPhotoSet.title}
+  onChange={handleSetChange}
+  className="w-full border p-2 rounded"
+  placeholder=""
+/>
+
+<label className="block font-semibold mt-2">Price</label>
+<input
+  name="price"
+  value={newPhotoSet.price}
+  onChange={handleSetChange}
+  type="number"
+  className="w-full border p-2 rounded"
+  placeholder=""
+/>
+
 
     {/* Preview Image Upload */}
     <div className="mb-2">
