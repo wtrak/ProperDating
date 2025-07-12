@@ -862,4 +862,15 @@ const handleExtraPhotoUpload = async (e, slot) => {
 )}
           </div>
   );
+} // 👈 this closes the ProfilePage component
+
+// 👇 Add this AFTER the component is fully closed
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+
+export async function getServerSideProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common'])),
+    },
+  };
 }
