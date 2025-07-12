@@ -1,9 +1,8 @@
-/** @type {import('next-i18next').UserConfig} */
+// next-i18next.config.js
 module.exports = {
   i18n: {
-    locales: ['en', 'pl'],        // Add more languages here if needed
-    defaultLocale: 'en',          // This will be the fallback/default
-    localeDetection: true         // Automatically detects browser language
+    defaultLocale: 'en',
+    locales: ['en', 'pl', 'ru'], // Add all your supported languages
   },
-  reloadOnPrerender: process.env.NODE_ENV === 'development'
-}
+  localePath: './public/locales', // default path for translation files
+};

@@ -1,12 +1,6 @@
-import { i18n } from './next-i18next.config'
-import type { NextConfig } from 'next'
+const { i18n } = require('./next-i18next.config');
 
-const nextConfig: NextConfig = {
-  reactStrictMode: true,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  i18n, // 👈 Add this line to enable i18n
-}
-
-export default nextConfig
+module.exports = {
+  i18n,
+  // other Next.js config
+};
