@@ -1,3 +1,4 @@
+import { useTranslation } from 'next-i18next'
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '../supabaseClient'
@@ -426,7 +427,7 @@ const handleExtraPhotoUpload = async (e, slot) => {
 </p>
 
 
-      <div className="flex flex-col items-center space-y-2 mb-4">
+<div className="flex flex-col items-center space-y-2 mb-4">
   {profile.photo_url ? (
     <>
       <img
@@ -450,13 +451,13 @@ const handleExtraPhotoUpload = async (e, slot) => {
         htmlFor="profile-photo"
         className="bg-blue-600 text-white text-sm px-4 py-1 rounded cursor-pointer"
       >
-        Change Photo
+        {t('change_photo')}
       </label>
     </>
   ) : (
     <>
       <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center text-sm text-gray-500">
-        No Photo
+        {t('no_photo')}
       </div>
       <input
         type="file"
@@ -474,21 +475,19 @@ const handleExtraPhotoUpload = async (e, slot) => {
         htmlFor="profile-photo"
         className="bg-blue-600 text-white text-sm px-4 py-1 rounded cursor-pointer"
       >
-        Add Photo
+        {t('add_photo')}
       </label>
     </>
   )}
   <input type="file" id="profile-photo-input" className="hidden" />
-  {uploadingProfile && <p className="text-sm text-yellow-600">Uploading profile photo...</p>}
-
+  {uploadingProfile && <p className="text-sm text-yellow-600">{t('uploading_profile_photo')}</p>}
 </div>
 
-
-      {/* Extra Photos */}
+{/* Extra Photos */}
 <div className="mt-6">
-  <h2 className="text-lg font-semibold mb-2">Extra Profile Photos</h2>
+  <h2 className="text-lg font-semibold mb-2">{t('extra_profile_photos')}</h2>
   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-    {uploadingExtra && <p className="text-sm text-yellow-600 mt-2">Uploading extra photo...</p>}
+    {uploadingExtra && <p className="text-sm text-yellow-600 mt-2">{t('uploading_extra_photo')}</p>}
 
     {[0, 1, 2, 3, 4].map((index) => {
       const photo = extraPhotos[index]
@@ -505,27 +504,26 @@ const handleExtraPhotoUpload = async (e, slot) => {
                 onClick={() => handleDeleteExtraPhoto(photo.id)}
                 className="bg-red-500 text-white text-sm px-2 py-1 rounded"
               >
-                Delete
+                {t('delete')}
               </button>
             </>
           ) : (
             <>
               <div className="w-24 h-24 bg-gray-100 rounded flex items-center justify-center text-sm text-gray-500">
-                Empty
+                {t('empty')}
               </div>
               <input
-  type="file"
-  accept="image/*"
-  id={`extra-upload-${index}`}
-  className="hidden"
-  onChange={(e) => handleExtraPhotoUpload(e, index)}
-/>
-
+                type="file"
+                accept="image/*"
+                id={`extra-upload-${index}`}
+                className="hidden"
+                onChange={(e) => handleExtraPhotoUpload(e, index)}
+              />
               <label
                 htmlFor={`extra-upload-${index}`}
                 className="bg-blue-600 text-white text-sm px-2 py-1 rounded cursor-pointer mt-1"
               >
-                Add Photo
+                {t('add_photo')}
               </label>
             </>
           )}
@@ -534,6 +532,7 @@ const handleExtraPhotoUpload = async (e, slot) => {
     })}
   </div>
 </div>
+
 
 
       <input name="display_name" value={profile.display_name} onChange={handleChange} className="w-full border p-2 rounded" placeholder="Display Name" />

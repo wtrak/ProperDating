@@ -1,7 +1,8 @@
 import '@/styles/globals.css'
 import NavBar from '../components/NavBar'
+import { appWithTranslation } from 'next-i18next'
 
-export default function MyApp({ Component, pageProps }) {
+function MyApp({ Component, pageProps }) {
   return (
     <>
       <NavBar />
@@ -9,3 +10,5 @@ export default function MyApp({ Component, pageProps }) {
     </>
   )
 }
+
+export default appWithTranslation(MyApp)

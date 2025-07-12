@@ -1,3 +1,4 @@
+import LanguageSelector from './LanguageSelector'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
@@ -45,6 +46,8 @@ export default function NavBar() {
       <span onClick={handleLogout} style={{ color: 'red', cursor: 'pointer' }}>
         Logout
       </span>
+          {/* 🌐 Language Selector */}
+    <LanguageSelector />
     </nav>
   )
 }
