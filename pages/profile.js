@@ -1,4 +1,3 @@
-import { useTranslation } from 'next-i18next'
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '../supabaseClient'
@@ -10,8 +9,9 @@ import { supabase } from '../supabaseClient'
 function sanitizeFilename(name) {
   return name.replace(/[^a-z0-9.\-_]/gi, '-')
 }
-
+import { useTranslation } from 'next-i18next'
 export default function ProfilePage() {
+  const { t } = useTranslation('common')
   const router = useRouter()
 
   const [age, setAge] = useState('');
